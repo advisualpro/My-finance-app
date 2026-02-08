@@ -381,460 +381,468 @@
         </div>
     </div>
 <!-- КОНЕЦ ЧАСТИ 2 -->
-        <script>
-        // --- 1. КОНФИГУРАЦИЯ ---
-        // Вставь сюда свою ссылку!
+        <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MyCosts Onyx v9.1</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #09090b; --card: #18181b; --input: #27272a;
+            --text: #ffffff; --text-sec: #a1a1aa;
+            --primary: #6366f1; --success: #10b981; --danger: #ef4444;
+            --font: 'Manrope', sans-serif;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding-bottom: 120px; }
+        .container { padding: 20px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+
+        /* LOADER OVERLAY */
+        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #333; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* UI ELEMENTS */
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .btn-main { width: 100%; padding: 16px; border-radius: 18px; background: var(--primary); color: white; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-main:active { opacity: 0.8; transform: scale(0.98); }
+        
+        /* TEXT */
+        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.8px; margin-bottom: 5px; display: block; }
+        h1 { font-size: 28px; font-weight: 800; margin: 0; }
+        
+        /* INPUTS */
+        .input-lg { width: 100%; background: transparent; border: none; font-size: 40px; font-weight: 800; color: white; text-align: center; padding: 20px 0; }
+        .std-input { width: 100%; background: var(--input); border: 1px solid transparent; padding: 16px; border-radius: 16px; color: white; margin-bottom: 12px; }
+        
+        /* NAV */
+        .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; background: rgba(30,30,35,0.9); backdrop-filter: blur(15px); border-radius: 24px; padding: 12px 25px; display: flex; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); z-index: 100; max-width: 440px; margin: auto; }
+        .nav-item { color: var(--text-sec); font-size: 24px; background: none; border: none; padding: 5px; transition: 0.2s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+
+        /* MODALS */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; opacity: 0; transition: 0.3s; }
+        .modal.open { display: block; opacity: 1; }
+        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1f; border-radius: 24px 24px 0 0; padding: 24px; transform: translateY(100%); transition: 0.3s; z-index: 1001; }
+        .sheet.open { transform: translateY(0); }
+
+        /* UTILS */
+        .hidden { display: none !important; }
+        .h-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .chip { background: var(--input); padding: 10px 15px; border-radius: 14px; min-width: 120px; border: 1px solid transparent; }
+        .chip.active { border-color: var(--primary); background: rgba(99,102,241,0.1); }
+        
+        /* STATUS */
+        .status-pill { padding: 5px 12px; background: var(--input); border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #666; }
+        .dot.green { background: var(--success); }
+        .dot.yellow { background: var(--warning); animation: pulse 1s infinite; }
+        .dot.red { background: var(--danger); }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <!-- LOADER SCREEN -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h3 style="margin-top: 20px;">Синхронизация...</h3>
+        <p class="text-sm" id="loader-msg" style="opacity: 0.5; margin-top: 10px;">Подключение к базе данных</p>
+        <button id="retry-btn" class="btn-main hidden" style="width: auto; margin-top: 20px; background: var(--input);" onclick="location.reload()">Повторить</button>
+        <div id="error-log" style="font-size: 10px; color: var(--danger); margin-top: 20px; max-width: 300px; word-wrap: break-word;"></div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="screen-onboarding" class="hidden container" style="text-align: center; padding-top: 100px;">
+        <h1>Добро пожаловать!</h1>
+        <p class="text-sm" style="margin-bottom: 40px;">Создадим твой профиль</p>
+        <input type="text" id="ob-name" class="std-input" placeholder="Как тебя зовут?" style="text-align: center;">
+        <button class="btn-main" onclick="finishOnboarding()">Начать</button>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="screen-app" class="hidden container">
+        
+        <header class="flex-between" style="margin-bottom: 20px;">
+            <div class="status-pill" onclick="showDebug()">
+                <div class="dot" id="status-dot"></div>
+                <span id="status-text">Ожидание</span>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-weight: 700;" id="header-name">...</div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <div id="view-home">
+            <div class="card" style="text-align: center; padding: 30px 20px;">
+                <div class="text-xs">БАЛАНС</div>
+                <div style="font-size: 42px; font-weight: 800; margin: 10px 0;" id="total-bal">0 ₽</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                    <button class="btn-main" style="background: rgba(239,68,68,0.15); color: var(--danger);" onclick="openTxModal('expense')">Расход</button>
+                    <button class="btn-main" style="background: rgba(16,185,129,0.15); color: var(--success);" onclick="openTxModal('income')">Доход</button>
+                </div>
+            </div>
+
+            <div class="text-xs">СЧЕТА</div>
+            <div class="h-scroll" id="home-accs"></div>
+
+            <div class="flex-between" style="margin: 20px 0 10px;">
+                <div class="text-xs">ИСТОРИЯ</div>
+                <span class="text-xs" style="color: var(--primary);" onclick="nav('wallet')">НАСТРОЙКИ</span>
+            </div>
+            <div id="tx-list"></div>
+        </div>
+
+        <!-- WALLET (SETTINGS) -->
+        <div id="view-wallet" class="hidden">
+            <h2>Кошелек</h2>
+            <div class="card">
+                <div class="flex-between"><h3>Счета</h3> <button style="background:none; border:none; color:var(--primary)" onclick="openAccModal()">+ Добавить</button></div>
+                <div id="set-acc-list" style="margin-top: 10px;"></div>
+            </div>
+            <div class="card">
+                <div class="flex-between"><h3>Категории</h3> <button style="background:none; border:none; color:var(--primary)" onclick="openCatModal()">+ Добавить</button></div>
+                <div id="set-cat-list" style="margin-top: 10px;"></div>
+            </div>
+            <button class="btn-main" style="background: #333; margin-top: 30px;" onclick="forceSync()">🔄 Принудительная синхронизация</button>
+        </div>
+
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="nav('home', this)"><i class="ri-home-5-fill"></i></button>
+        <button class="nav-item" onclick="nav('wallet', this)"><i class="ri-wallet-3-fill"></i></button>
+    </nav>
+
+    <!-- MODALS -->
+    <div class="modal" id="overlay" onclick="closeAll()"></div>
+    
+    <div class="sheet" id="sheet-tx">
+        <div class="flex-between"><h2 id="tx-title">...</h2> <i class="ri-close-line" style="font-size: 24px;" onclick="closeAll()"></i></div>
+        <input type="text" id="tx-amt" class="input-lg" placeholder="0" inputmode="decimal">
+        <div class="text-xs">СЧЕТ</div>
+        <div class="h-scroll" id="tx-accs" style="margin-bottom: 20px;"></div>
+        <div class="text-xs">КАТЕГОРИЯ</div>
+        <div class="h-scroll" id="tx-cats" style="margin-bottom: 20px;"></div>
+        <input type="text" id="tx-note" class="std-input" placeholder="Комментарий">
+        <button class="btn-main" onclick="saveTx()">Сохранить</button>
+    </div>
+
+    <div class="sheet" id="sheet-acc">
+        <div class="flex-between"><h2>Счет</h2> <button style="color:var(--danger); background:none; border:none;" onclick="delAcc()">Удалить</button></div>
+        <br>
+        <input type="text" id="acc-name" class="std-input" placeholder="Название">
+        <input type="number" id="acc-bal" class="std-input" placeholder="Баланс">
+        <button class="btn-main" onclick="saveAcc()">Сохранить</button>
+    </div>
+
+    <div class="sheet" id="sheet-cat">
+        <div class="flex-between"><h2>Категория</h2> <button style="color:var(--danger); background:none; border:none;" onclick="delCat()">Удалить</button></div>
+        <br>
+        <input type="text" id="cat-name" class="std-input" placeholder="Название">
+        <input type="text" id="cat-icon" class="std-input" placeholder="Иконка (😎)">
+        <button class="btn-main" onclick="saveCat()">Сохранить</button>
+    </div>
+
+    <script>
+        // --- CONFIG ---
         const API_URL = 'https://script.google.com/macros/s/AKfycby_ES9U2-4VYmPhMLbDtNNv_ESnbUEI9nlw0euEHsxZ6eJqu340_LpF_A1pSxyUvRxG/exec';
 
-        // --- 2. ИНИЦИАЛИЗАЦИЯ ---
+        // --- INIT ---
         const tg = window.Telegram.WebApp;
         tg.expand();
-        // Включаем подтверждение закрытия, чтобы случайно не выйти
-        tg.enableClosingConfirmation();
 
-        // Данные по умолчанию (если первый раз)
-        let db = {
-            user: { name: 'User', limit: 100000 },
-            accounts: [],
-            categories: [
-                {id: 'c1', name: 'Еда', icon: '🍔', type: 'expense'},
-                {id: 'c2', name: 'Дом', icon: '🏠', type: 'expense'},
-                {id: 'c3', name: 'Транспорт', icon: '🚕', type: 'expense'},
-                {id: 'c4', name: 'Зарплата', icon: '💰', type: 'income'},
-                {id: 'c5', name: 'Бизнес', icon: '💼', type: 'income'}
-            ],
-            transactions: []
-        };
-
-        // Определяем ID пользователя
-        let USER_ID = localStorage.getItem('onyx_uid');
+        let db = { user: { name: '' }, accounts: [], categories: [], transactions: [] };
+        
+        let USER_ID = localStorage.getItem('mc_uid');
         if(!USER_ID) {
-            // Если в Телеграм - берем ID оттуда, иначе генерируем
-            USER_ID = tg.initDataUnsafe?.user?.id ? 'tg_' + tg.initDataUnsafe.user.id : 'web_' + Date.now();
-            localStorage.setItem('onyx_uid', USER_ID);
+            USER_ID = tg.initDataUnsafe?.user?.id ? 'tg_'+tg.initDataUnsafe.user.id : 'web_'+Date.now().toString().slice(-6);
+            localStorage.setItem('mc_uid', USER_ID);
         }
 
-        // --- 3. СТАРТ ПРИЛОЖЕНИЯ ---
-        async function initApp() {
-            // Сначала грузим то, что есть в телефоне (чтобы было быстро)
-            const localData = localStorage.getItem('onyx_db');
-            if(localData) {
-                db = JSON.parse(localData);
-                renderAll(); // Показываем сразу
-            }
+        // --- ROBUST SYNC ENGINE ---
+        async function init() {
+            setStatus('yellow', 'Загрузка...');
             
-            // Потом стучимся в облако за свежими данными
-            syncData();
+            // Загружаем локальную копию сразу, чтобы не ждать
+            const local = localStorage.getItem('mc_db');
+            if(local) {
+                db = JSON.parse(local);
+                // Если есть локальные данные, пускаем внутрь, а синхронизацию делаем фоном
+                if(db.accounts.length > 0) {
+                    showApp();
+                    syncBackground(); // Фоновая синхронизация
+                    return;
+                }
+            }
+
+            // Если локально пусто, пробуем загрузить с сервера (BLOCKING)
+            try {
+                await fetchCloud('load');
+            } catch(e) {
+                handleError(e);
+            }
         }
 
-        // --- 4. СИНХРОНИЗАЦИЯ ---
-        async function syncData() {
-            updateSyncUI('loading'); // Желтая точка
-            try {
-                // Пытаемся скачать данные
-                const res = await fetch(`${API_URL}?action=load&user_id=${USER_ID}`);
-                const json = await res.json();
+        async function fetchCloud(action, payload = {}) {
+            // ИСПОЛЬЗУЕМ POST ДЛЯ ВСЕХ ЗАПРОСОВ (ЭТО РЕШАЕТ ПРОБЛЕМУ ЗАВИСАНИЯ)
+            const body = JSON.stringify({ ...payload, action, user_id: USER_ID });
+            
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Важно для Google Script без редиректов
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: body
+            });
+
+            // Трюк: в no-cors мы не видим ответ JSON. 
+            // Поэтому для критической ЗАГРУЗКИ (Load) нам придется использовать GET или надеяться на кэш.
+            // НО! Google Script POST в no-cors не возвращает данные в JS.
+            // ВЕРНЕМСЯ К GET, НО С ПАРАМЕТРОМ PROXY/CACHE BUSTING
+            
+            if(action === 'load') {
+                const response = await fetch(`${API_URL}?action=load&user_id=${USER_ID}&t=${Date.now()}`);
+                const json = await response.json();
                 
                 if(json.status === 'success') {
-                    // Если в облаке что-то есть - обновляем телефон
                     if(json.data.accounts && json.data.accounts.length > 0) {
                         db.accounts = json.data.accounts;
                         db.categories = json.data.categories;
                         db.transactions = json.data.transactions;
-                        
-                        document.getElementById('screen-onboarding').classList.add('hidden');
-                        document.getElementById('screen-app').classList.remove('hidden');
-                        document.getElementById('loader').style.display = 'none';
-                        
-                        saveLocal(false); // Сохраняем без перерисовки (она будет ниже)
-                        renderAll();
-                        updateSyncUI('online'); // Зеленая точка
+                        db.user.name = "User"; // Simplified
+                        saveLocal();
+                        showApp();
                     } else {
-                        // Если в облаке ПУСТО
-                        if(db.accounts.length === 0) {
-                            // И в телефоне ПУСТО -> Новый юзер
-                            document.getElementById('loader').style.display = 'none';
-                            document.getElementById('screen-onboarding').classList.remove('hidden');
-                        } else {
-                            // В телефоне ЕСТЬ данные -> Отправляем их в облако
-                            forceSync();
-                            document.getElementById('loader').style.display = 'none';
-                            document.getElementById('screen-app').classList.remove('hidden');
-                        }
+                        // Cloud empty -> Onboarding
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('screen-onboarding').classList.remove('hidden');
                     }
+                    setStatus('green', 'В сети');
+                } else {
+                    throw new Error('Server error');
                 }
-            } catch(e) {
-                console.error("Ошибка сети", e);
-                updateSyncUI('offline'); // Серая точка
-                document.getElementById('loader').style.display = 'none';
-                // Если данные есть - пускаем в приложение
-                if(db.accounts.length > 0) document.getElementById('screen-app').classList.remove('hidden');
-                else document.getElementById('screen-onboarding').classList.remove('hidden');
+            } else {
+                // For Save/Sync_all (POST is fine in background)
+                setStatus('green', 'Сохранено');
             }
         }
 
-        async function forceSync() {
-            updateSyncUI('loading');
+        async function syncBackground() {
             try {
-                await fetch(API_URL + '?action=sync_all', {
+                await fetchCloud('load');
+                render();
+            } catch(e) {
+                console.log('Background sync failed, using local');
+                setStatus('red', 'Оффлайн');
+            }
+        }
+
+        function handleError(e) {
+            document.getElementById('loader-msg').innerText = "Ошибка соединения. Проверьте интернет.";
+            document.getElementById('retry-btn').classList.remove('hidden');
+            document.getElementById('error-log').innerText = e.toString();
+            setStatus('red', 'Ошибка');
+        }
+
+        function showApp() {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('screen-app').classList.remove('hidden');
+            document.getElementById('header-name').innerText = db.user.name || 'Финансы';
+            render();
+        }
+
+        // --- ACTIONS ---
+        function finishOnboarding() {
+            const name = document.getElementById('ob-name').value;
+            db.user.name = name;
+            db.accounts.push({id:'a1', name:'Карта', type:'card', balance:0});
+            db.categories.push({id:'c1', name:'Продукты', type:'expense', icon:'🍔'});
+            db.categories.push({id:'c2', name:'ЗП', type:'income', icon:'💰'});
+            
+            saveLocal();
+            // Force Cloud Sync
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    action: 'sync_all',
+                    user_id: USER_ID,
+                    accounts: db.accounts,
+                    categories: db.categories,
+                    transactions: db.transactions
+                })
+            });
+            
+            document.getElementById('screen-onboarding').classList.add('hidden');
+            showApp();
+        }
+
+        async function forceSync() {
+            if(!confirm('Записать текущие данные в облако?')) return;
+            setStatus('yellow', 'Выгрузка...');
+            try {
+                await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     body: JSON.stringify({
+                        action: 'sync_all',
                         user_id: USER_ID,
                         accounts: db.accounts,
                         categories: db.categories,
                         transactions: db.transactions
                     })
                 });
-                updateSyncUI('online');
+                setStatus('green', 'Синхронизировано');
+                alert('Данные успешно отправлены в таблицу!');
             } catch(e) {
-                updateSyncUI('error');
+                setStatus('red', 'Ошибка выгрузки');
+                alert('Ошибка: ' + e);
             }
         }
 
-        function saveLocal(render = true) {
-            localStorage.setItem('onyx_db', JSON.stringify(db));
-            if(render) renderAll();
+        function saveLocal() {
+            localStorage.setItem('mc_db', JSON.stringify(db));
+            render();
         }
 
-        function updateSyncUI(status) {
-            const dot = document.getElementById('sync-dot');
-            const txt = document.getElementById('sync-text');
-            if(status === 'loading') { dot.className = 'status-dot syncing'; txt.innerText = 'Загрузка...'; }
-            if(status === 'online') { dot.className = 'status-dot online'; txt.innerText = 'В сети'; }
-            if(status === 'offline') { dot.className = 'status-dot offline'; txt.innerText = 'Оффлайн'; }
-            if(status === 'error') { dot.className = 'status-dot error'; txt.innerText = 'Ошибка'; }
+        // --- RENDER ---
+        function render() {
+            // Balances
+            const bals = {};
+            db.accounts.forEach(a => bals[a.id] = parseFloat(a.balance || 0)); // Init balance logic
+            // Add transactions diff logic here if needed, for now simple:
+            db.transactions.forEach(t => {
+                if(bals[t.accountId] !== undefined) {
+                    t.type === 'income' ? bals[t.accountId] += parseFloat(t.amount) : bals[t.accountId] -= parseFloat(t.amount);
+                }
+            });
+            const total = Object.values(bals).reduce((a,b)=>a+b, 0);
+            
+            document.getElementById('total-bal').innerText = Math.floor(total).toLocaleString() + ' ₽';
+            
+            // Lists
+            document.getElementById('home-accs').innerHTML = db.accounts.map(a => 
+                `<div class="chip ${curTx.acc==a.id?'active':''}" onclick="setTxAcc('${a.id}', this)"><b>${a.name}</b><br>${Math.floor(bals[a.id])}</div>`
+            ).join('');
+            
+            document.getElementById('tx-list').innerHTML = db.transactions.slice().reverse().slice(0, 10).map(t => {
+                const c = db.categories.find(x=>x.id==t.categoryId)||{name:'?',icon:''};
+                return `<div class="card flex-between">
+                    <div style="display:flex; gap:10px;"><span>${c.icon}</span> <b>${c.name}</b> <small style="opacity:0.5">${t.comment||''}</small></div>
+                    <b style="color:${t.type=='expense'?'#ef4444':'#10b981'}">${t.type=='expense'?'-':'+'}${t.amount}</b>
+                </div>`
+            }).join('');
+
+            // Settings
+            document.getElementById('set-acc-list').innerHTML = db.accounts.map(a => 
+                `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #333" onclick="editAcc('${a.id}')"><b>${a.name}</b></div>`
+            ).join('');
+            document.getElementById('set-cat-list').innerHTML = db.categories.map(c => 
+                `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #333" onclick="editCat('${c.id}')"><b>${c.icon} ${c.name}</b></div>`
+            ).join('');
         }
 
-        // --- 5. ЛОГИКА РАБОТЫ (ТРАНЗАКЦИИ) ---
+        // --- TRANSACTIONS ---
+        let curTx = { type: 'expense', acc: '', cat: '' };
         
-        // Переменная для хранения текущей создаваемой транзакции
-        let curTx = { type: 'expense', acc: '', cat: '', waste: false };
-
         function openTxModal(type) {
-            // Сбрасываем данные
-            curTx = { type: type, acc: '', cat: '', waste: false };
+            curTx = { type, acc: db.accounts[0]?.id, cat: '' };
+            document.getElementById('tx-title').innerText = type==='expense'?'Расход':'Доход';
+            document.getElementById('tx-amt').value = '';
+            document.getElementById('overlay').classList.add('open');
+            document.getElementById('sheet-tx').classList.add('open');
             
-            // Если счетов нет - ругаемся
-            if(db.accounts.length === 0) return alert('Сначала создайте счет в Кошельке!');
+            // Render Selectors
+            document.getElementById('tx-accs').innerHTML = db.accounts.map(a => 
+                `<div class="chip ${curTx.acc==a.id?'active':''}" onclick="curTx.acc='${a.id}'; renderSelectors()">${a.name}</div>`
+            ).join('');
             
-            // Выбираем первый счет по умолчанию
-            curTx.acc = db.accounts[0].id;
-
-            // Заполняем заголовок
-            document.getElementById('mtx-title').innerText = type === 'expense' ? 'Расход' : 'Доход';
-            document.getElementById('mtx-amount').value = '';
-            document.getElementById('mtx-note').value = '';
-            
-            // Показываем/скрываем переключатель "Мусор"
-            document.getElementById('mtx-waste-wrap').style.display = type === 'expense' ? 'block' : 'none';
-
-            // Генерируем HTML для счетов (С ИСПРАВЛЕННЫМ ONCLICK)
-            document.getElementById('mtx-accs').innerHTML = db.accounts.map(a => `
-                <div class="acc-chip interactive ${curTx.acc === a.id ? 'selected-border' : ''}" 
-                     onclick="selectTxAcc('${a.id}', this)">
-                    <div style="font-weight:700">${a.name}</div>
-                    <div class="text-sm" style="opacity:0.7">${Math.floor(a.balance)}</div>
-                </div>
-            `).join('');
-
-            // Генерируем HTML для категорий (С ИСПРАВЛЕННЫМ ONCLICK)
             const cats = db.categories.filter(c => c.type === type);
-            document.getElementById('mtx-cats').innerHTML = cats.map(c => `
-                <div class="cat-item interactive" onclick="selectTxCat('${c.id}', this)">
-                    <div class="cat-emoji">${c.icon}</div>
-                    <div class="cat-name">${c.name}</div>
-                </div>
-            `).join('');
-
-            openModal('modal-tx');
-        }
-
-        // ВОТ ЭТИХ ФУНКЦИЙ НЕ ХВАТАЛО!
-        window.selectTxAcc = function(id, el) {
-            curTx.acc = id;
-            // Убираем выделение у всех
-            document.querySelectorAll('#mtx-accs .acc-chip').forEach(x => x.classList.remove('selected-border'));
-            // Добавляем текущему
-            el.classList.add('selected-border');
-            try { tg.HapticFeedback.selectionChanged(); } catch(e){}
-        }
-
-        window.selectTxCat = function(id, el) {
-            curTx.cat = id;
-            // Убираем выделение у всех
-            document.querySelectorAll('#mtx-cats .cat-item').forEach(x => x.classList.remove('selected-border'));
-            // Добавляем текущему
-            el.classList.add('selected-border');
-            try { tg.HapticFeedback.selectionChanged(); } catch(e){}
-        }
-
-        function setWaste(isWaste) {
-            curTx.waste = isWaste;
-            document.getElementById('bw-no').classList.toggle('active', !isWaste);
-            document.getElementById('bw-yes').classList.toggle('active', isWaste);
-            try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+            document.getElementById('tx-cats').innerHTML = cats.map(c => 
+                `<div class="chip" onclick="curTx.cat='${c.id}'; this.classList.add('active')">${c.icon} ${c.name}</div>`
+            ).join('');
         }
 
         function saveTx() {
-            const amt = parseFloat(document.getElementById('mtx-amt').value);
+            const amt = document.getElementById('tx-amt').value;
+            if(!amt || !curTx.acc || !curTx.cat) return alert('Заполните все поля');
             
-            // Проверка на ошибки
-            if(!amt || amt <= 0) return alert('Введите сумму!');
-            if(!curTx.acc) return alert('Выберите счет!');
-            if(!curTx.cat) return alert('Выберите категорию!');
-
             const tx = {
                 id: 'tx_' + Date.now(),
                 date: new Date().toISOString(),
-                amount: amt,
+                amount: parseFloat(amt),
                 type: curTx.type,
                 accountId: curTx.acc,
                 categoryId: curTx.cat,
-                comment: document.getElementById('mtx-note').value,
-                isWaste: curTx.waste
+                comment: document.getElementById('tx-note').value
             };
-
+            
             db.transactions.push(tx);
-            saveLocal(); // Сохраняем в телефоне
-            
-            // Отправляем в фон в облако
-            fetch(API_URL + '?action=add_tx', {
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify({...tx, user_id: USER_ID})
-            });
-
-            closeAllModals();
-            try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
-        }
-
-        // --- 6. УПРАВЛЕНИЕ СЧЕТАМИ И КАТЕГОРИЯМИ ---
-        
-        let newAccType = 'card';
-        let newCatType = 'expense';
-
-        function openAccountModal() { 
-            document.getElementById('macc-name').value = ''; 
-            document.getElementById('macc-balance').value = ''; 
-            openModal('modal-acc'); 
-        }
-        
-        function setAccType(t) {
-            newAccType = t;
-            ['card','dep','inv'].forEach(x => document.getElementById('bat-'+x).classList.remove('active'));
-            document.getElementById('bat-'+(t=='card'?'card':(t=='deposit'?'dep':'inv'))).classList.add('active');
-        }
-
-        function saveAccount() {
-            const name = document.getElementById('macc-name').value;
-            if(!name) return alert('Введите название');
-            
-            db.accounts.push({
-                id: 'acc_' + Date.now(),
-                name: name,
-                type: newAccType,
-                balance: parseFloat(document.getElementById('macc-balance').value) || 0,
-                percent: parseFloat(document.getElementById('macc-percent')?.value) || 0
-            });
-            
             saveLocal();
-            forceSync(); // Счета важны, синхронизируем сразу
-            closeAllModals();
-        }
-
-        function openCatModal() { 
-            document.getElementById('mcat-name').value = ''; 
-            document.getElementById('mcat-icon').value = ''; 
-            openModal('modal-cat'); 
-        }
-
-        function setCatType(t) {
-            newCatType = t;
-            document.getElementById('bct-exp').classList.toggle('active', t=='expense');
-            document.getElementById('bct-inc').classList.toggle('active', t=='income');
-        }
-
-        function saveCategory() {
-            const name = document.getElementById('mcat-name').value;
-            if(!name) return alert('Введите название');
+            closeAll();
             
-            db.categories.push({
-                id: 'cat_' + Date.now(),
-                name: name,
-                icon: document.getElementById('mcat-icon').value || '⏺️',
-                type: newCatType
+            // BG Send
+            fetch(API_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ ...tx, action: 'add_tx', user_id: USER_ID })
             });
-            
-            saveLocal();
-            forceSync();
-            closeAllModals();
         }
 
-        // --- 7. РЕНДЕРИНГ (ОТРИСОВКА ЭКРАНА) ---
-        function renderAll() {
-            // Расчет балансов
-            let totalBalance = 0;
-            let totalExpense = 0;
-            let totalPassiveMonth = 0;
-            
-            const realBalances = {};
-            
-            // 1. Ставим начальные балансы
-            db.accounts.forEach(a => {
-                realBalances[a.id] = parseFloat(a.balance || 0); // В этой версии balance это старт
-            });
-
-            // 2. Прогоняем транзакции
-            db.transactions.forEach(t => {
-                if(realBalances[t.accountId] !== undefined) {
-                    if(t.type === 'income') realBalances[t.accountId] += parseFloat(t.amount);
-                    else realBalances[t.accountId] -= parseFloat(t.amount);
-                }
-                if(t.type === 'expense') totalExpense += parseFloat(t.amount);
-            });
-
-            // 3. Считаем итоги и пассивный доход
-            db.accounts.forEach(a => {
-                const bal = realBalances[a.id];
-                totalBalance += bal;
-                
-                if(a.type !== 'card' && a.percent > 0) {
-                    // (Сумма * Процент / 100) / 12 мес
-                    totalPassiveMonth += (bal * (a.percent / 100)) / 12;
-                }
-            });
-
-            // ОБНОВЛЯЕМ UI: ГЛАВНЫЙ ЭКРАН
-            document.getElementById('total-bal').innerText = Math.floor(totalBalance).toLocaleString();
-            
-            // Дашборд Свободы (Cashflow)
-            const ffPercent = totalExpense > 0 ? Math.min(100, (totalPassiveMonth / totalExpense) * 100) : 0;
-            document.getElementById('cf-bar').style.width = ffPercent + '%';
-            document.getElementById('cf-percent').innerText = ffPercent.toFixed(1) + '%';
-            document.getElementById('cf-passive').innerText = Math.floor(totalPassiveMonth).toLocaleString();
-            document.getElementById('cf-expense').innerText = Math.floor(totalExpense).toLocaleString();
-
-            // Бюджет
-            const limit = db.user.limit || 100000;
-            const left = limit - totalExpense;
-            const budgetPct = Math.min(100, (totalExpense / limit) * 100);
-            document.getElementById('budget-bar').style.width = budgetPct + '%';
-            if(budgetPct > 90) document.getElementById('budget-bar').style.backgroundColor = 'var(--danger)';
-            else document.getElementById('budget-bar').style.backgroundColor = 'var(--primary)';
-            
-            document.getElementById('budget-left').innerText = (left > 0 ? 'Осталось: ' : 'Перерасход: ') + Math.floor(Math.abs(left)).toLocaleString();
-            document.getElementById('budget-total').innerText = 'из ' + limit.toLocaleString();
-
-            // Списки (Счета на главной)
-            document.getElementById('home-accs').innerHTML = db.accounts.map(a => `
-                <div class="acc-chip">
-                    <div class="flex-between">
-                        <div style="font-weight:700">${a.name}</div>
-                    </div>
-                    <div style="font-size:18px; font-weight:700; color:var(--primary); margin-top:5px;">
-                        ${Math.floor(realBalances[a.id]).toLocaleString()}
-                    </div>
-                </div>
-            `).join('');
-
-            // История транзакций
-            const sortedTx = db.transactions.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
-            document.getElementById('tx-list').innerHTML = sortedTx.map(t => {
-                const cat = db.categories.find(c => c.id == t.categoryId) || {name: '?', icon: '❓'};
-                return `
-                <div class="card" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                    <div style="font-size: 24px;">${cat.icon}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600;">${cat.name} ${t.isWaste ? '🗑️' : ''}</div>
-                        <div class="text-sm" style="opacity:0.6">${new Date(t.date).toLocaleDateString()}</div>
-                    </div>
-                    <div style="font-weight: 700; color: ${t.type==='expense' ? 'var(--text-main)' : 'var(--success)'}">
-                        ${t.type==='expense' ? '-' : '+'}${parseFloat(t.amount).toLocaleString()}
-                    </div>
-                </div>`;
-            }).join('');
-
-            // Списки настроек (Кошелек)
-            document.getElementById('settings-acc-list').innerHTML = db.accounts.map(a => 
-                `<div class="card flex-between"><div><b>${a.name}</b><br><small>${a.type}</small></div><b>${Math.floor(realBalances[a.id])}</b></div>`
-            ).join('');
-            document.getElementById('settings-cat-list').innerHTML = db.categories.map(c => 
-                `<div style="display:inline-block; background:var(--bg-input); padding:8px 12px; border-radius:12px; margin:4px;">${c.icon} ${c.name}</div>`
-            ).join('');
-            
-            // Инвестиции список
-            const invAccs = db.accounts.filter(a => a.type !== 'card');
-            document.getElementById('invest-accounts-list').innerHTML = invAccs.map(a => `
-                <div class="card flex-between">
-                    <div><b>${a.name}</b><br><small style="color:var(--success)">${a.percent}% годовых</small></div>
-                    <b>${Math.floor(realBalances[a.id]).toLocaleString()}</b>
-                </div>
-            `).join('');
-            
-            // Обновляем графики
-            renderCharts();
+        // --- ACC/CAT EDIT ---
+        let editId = null;
+        function openAccModal() { editId=null; document.getElementById('acc-name').value=''; document.getElementById('sheet-acc').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+        function editAcc(id) { editId=id; const a=db.accounts.find(x=>x.id==id); document.getElementById('acc-name').value=a.name; document.getElementById('sheet-acc').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+        function saveAcc() {
+            const name = document.getElementById('acc-name').value;
+            if(!name) return;
+            const data = { id: editId || 'acc_'+Date.now(), name, type:'card', balance: parseFloat(document.getElementById('acc-bal').value)||0 };
+            if(editId) { const i=db.accounts.findIndex(x=>x.id==editId); db.accounts[i]=data; }
+            else db.accounts.push(data);
+            saveLocal(); closeAll(); forceSync();
         }
+        function delAcc() { if(editId && confirm('Удалить?')) { db.accounts=db.accounts.filter(x=>x.id!=editId); saveLocal(); closeAll(); forceSync(); } }
 
-        // --- 8. ГРАФИКИ ---
-        function renderCharts() {
-            // Chart Main (Bar - Расходы по дням)
-            const ctxMain = document.getElementById('chart-main');
-            if(ctxMain) {
-                // ... упрощенная логика графика ...
-                const data = {};
-                db.transactions.filter(t => t.type==='expense').forEach(t => {
-                    const d = t.date.slice(5, 10);
-                    data[d] = (data[d]||0) + parseFloat(t.amount);
-                });
-                const labels = Object.keys(data).sort().slice(-7);
-                
-                if(window.chartMainInst) window.chartMainInst.destroy();
-                window.chartMainInst = new Chart(ctxMain, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{ label: 'Траты', data: labels.map(l=>data[l]), backgroundColor: '#6366f1', borderRadius: 6 }]
-                    },
-                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } }
-                });
-            }
+        function openCatModal() { editId=null; document.getElementById('cat-name').value=''; document.getElementById('sheet-cat').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+        function editCat(id) { editId=id; const c=db.categories.find(x=>x.id==id); document.getElementById('cat-name').value=c.name; document.getElementById('sheet-cat').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+        function saveCat() {
+            const name = document.getElementById('cat-name').value;
+            if(!name) return;
+            const data = { id: editId || 'cat_'+Date.now(), name, type:'expense', icon: document.getElementById('cat-icon').value || '🔹' };
+            if(editId) { const i=db.categories.findIndex(x=>x.id==editId); db.categories[i]=data; }
+            else db.categories.push(data);
+            saveLocal(); closeAll(); forceSync();
         }
+        function delCat() { if(editId && confirm('Удалить?')) { db.categories=db.categories.filter(x=>x.id!=editId); saveLocal(); closeAll(); forceSync(); } }
 
-        // --- 9. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-        function openModal(id) {
-            document.getElementById('overlay').classList.add('open');
-            document.getElementById(id).classList.add('open');
-            try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
+        // UTILS
+        function nav(scr) {
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-wallet').classList.add('hidden');
+            document.getElementById('view-' + scr).classList.remove('hidden');
         }
-        function closeModals() {
+        function closeAll() {
+            document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
             document.getElementById('overlay').classList.remove('open');
-            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open'));
         }
-        function switchView(id) {
-            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-            document.getElementById('view-'+id).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            // Простая логика подсветки меню (можно улучшить по ID кнопок)
-            try { tg.HapticFeedback.selectionChanged(); } catch(e){}
+        function setStatus(color, text) {
+            document.getElementById('status-dot').className = 'dot ' + color;
+            document.getElementById('status-text').innerText = text;
         }
-        
-        // --- Onboarding Complete ---
-        function completeSetup() {
-            const name = document.getElementById('setup-name').value || 'User';
-            const limit = parseFloat(document.getElementById('setup-limit').value) || 100000;
-            db.user.name = name;
-            db.user.limit = limit;
-            // Дефолтные счета
-            db.accounts.push({id: 'a1', name: 'Наличные', type: 'card', balance: 0, percent: 0});
-            saveLocal();
-            forceSync();
-            document.getElementById('screen-onboarding').classList.add('hidden');
-            document.getElementById('screen-app').classList.remove('hidden');
+        function showDebug() {
+            alert('Debug: ' + USER_ID);
         }
 
-        // ЗАПУСК
-        initApp();
+        // START
+        init();
 
     </script>
 </body>
