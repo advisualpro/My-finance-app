@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyCosts Diamond Fixed</title>
+    <title>MyCosts Titanium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -11,176 +11,149 @@
 
     <style>
         :root {
-            --bg: #F3F4F6; --card: #FFFFFF; --text: #111827; --text-sec: #6B7280;
+            --bg: #F0F2F5; --card: #FFFFFF; --text: #111827; --text-sec: #6B7280;
             --primary: #4F46E5; --primary-soft: rgba(79, 70, 229, 0.1);
             --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
-            --radius: 24px; --shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --radius: 24px; --shadow: 0 8px 30px rgba(0,0,0,0.06);
             --font: 'Inter', sans-serif;
         }
         [data-theme="dark"] {
-            --bg: #0F172A; --card: #1E293B; --text: #F9FAFB; --text-sec: #94A3B8;
-            --primary: #818CF8; --primary-soft: rgba(129, 140, 248, 0.15);
+            --bg: #000000; --card: #1C1C1E; --text: #FFFFFF; --text-sec: #8E8E93;
+            --primary: #5E5CE6; --primary-soft: rgba(94, 92, 230, 0.2);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding-bottom: 120px; user-select: none; overflow-x: hidden; }
         
-        .container { padding: 20px; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
-        h1 { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin: 0; }
-        h2 { font-size: 20px; font-weight: 700; margin: 0; }
+        .container { padding: 20px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+        h1, h2, h4 { margin: 0; font-weight: 700; }
+        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
         .text-sm { font-size: 13px; color: var(--text-sec); }
-        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.8px; margin-bottom: 8px; display: block; }
         
-        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); position: relative; transition: transform 0.1s; }
+        /* Cards */
+        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); position: relative; transition: 0.1s; }
+        .card:active { transform: scale(0.99); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         
-        .money-input { width: 100%; font-size: 42px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; }
-        .std-input { width: 100%; padding: 18px; border-radius: 18px; background: var(--bg); border: 2px solid transparent; color: var(--text); font-size: 16px; margin-bottom: 15px; transition: 0.3s; }
+        /* Inputs & Buttons */
+        .money-input { width: 100%; font-size: 40px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; }
+        .std-input { width: 100%; padding: 16px; border-radius: 16px; background: var(--bg); border: 1px solid transparent; color: var(--text); font-size: 16px; margin-bottom: 12px; transition: 0.3s; }
         .std-input:focus { background: var(--card); border-color: var(--primary); }
 
-        .btn-main { width: 100%; padding: 18px; border-radius: 20px; background: var(--primary); color: white; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
-        .btn-main:active { transform: scale(0.96); }
-        .btn-ghost { background: transparent; color: var(--primary); border: none; font-weight: 600; padding: 10px; }
+        .btn-main { width: 100%; padding: 16px; border-radius: 18px; background: var(--primary); color: white; border: none; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
+        .btn-ghost { background: transparent; color: var(--primary); border: none; font-weight: 600; padding: 5px 10px; font-size: 14px; cursor: pointer; }
         
-        .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; margin: auto; max-width: 440px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-radius: 30px; padding: 10px 25px; display: flex; justify-content: space-between; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.2); z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
-        [data-theme="dark"] .nav-bar { background: rgba(30, 41, 59, 0.85); border-color: rgba(255,255,255,0.05); }
-        .nav-item { border: none; background: none; color: var(--text-sec); font-size: 26px; padding: 10px; position: relative; transition: 0.3s; }
+        /* Nav */
+        .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; margin: auto; max-width: 440px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 30px; padding: 12px 25px; display: flex; justify-content: space-between; box-shadow: 0 20px 50px rgba(0,0,0,0.2); z-index: 900; border: 1px solid rgba(255,255,255,0.1); }
+        [data-theme="dark"] .nav-bar { background: rgba(28, 28, 30, 0.8); border-color: rgba(255,255,255,0.1); }
+        .nav-item { border: none; background: none; color: var(--text-sec); font-size: 24px; padding: 5px; transition: 0.3s; position: relative; }
         .nav-item.active { color: var(--primary); transform: translateY(-3px); }
-        .nav-item.active::after { content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--primary); }
-
-        .screen { display: none; animation: fadeUp 0.3s ease; }
-        .screen.active { display: block; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: var(--bg); }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: 0.3s; }
-        .status-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
-        .status-dot.online { background: var(--success); }
-        .status-dot.error { background: var(--danger); }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        .h-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; margin: 0 -5px; padding: 0 5px; scrollbar-width: none; }
-        .acc-chip { min-width: 140px; background: var(--card); border: 1px solid rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; position: relative; flex-shrink: 0; }
-        .acc-chip.active { border-color: var(--primary); background: var(--primary-soft); }
         
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(4px); }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 30px 30px 0 0; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; max-height: 90vh; overflow-y: auto; }
+        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 28px 28px 0 0; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 2001; max-height: 92vh; overflow-y: auto; }
         .sheet.open { transform: translateY(0); }
-        .sheet-handle { width: 40px; height: 5px; background: var(--text-sec); opacity: 0.2; border-radius: 10px; margin: 0 auto 20px; }
-
-        /* Onboarding Styles Fixed */
-        #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; padding: 30px; display: flex; flex-direction: column; justify-content: center; transition: opacity 0.5s; opacity: 1; }
-        #onboarding-screen.closed { opacity: 0; pointer-events: none; }
         
-        .step { display: none; text-align: center; }
-        .step.active { display: block; animation: fadeUp 0.4s; }
-        .dots { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
-        .dot.active { background: var(--primary); width: 20px; border-radius: 10px; }
+        /* Toast Notification */
+        #toast { position: fixed; top: 20px; left: 20px; right: 20px; background: var(--text); color: var(--bg); padding: 15px; border-radius: 16px; text-align: center; z-index: 5000; transform: translateY(-150%); transition: 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        #toast.show { transform: translateY(0); }
 
-        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .icon-box { aspect-ratio: 1; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; transition: 0.2s; }
-        .icon-box.selected { background: var(--primary); color: white; transform: scale(1.1); }
-        .sw-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-sec); font-weight: 600; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .sw-btn.active { background: var(--card); color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        /* Screens */
+        .screen { display: none; animation: fade 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fade { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 
+        /* Chips & Grids */
+        .h-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
+        .acc-chip { min-width: 140px; background: var(--card); border: 1px solid rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; flex-shrink: 0; }
+        .acc-chip.selected { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 2px var(--primary); }
+        
+        .icon-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .icon-box { aspect-ratio: 1; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border: 2px solid transparent; }
+        .icon-box.selected { background: var(--primary); color: white; }
+
+        /* Progress Bar */
+        .prog-bg { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .prog-fill { height: 100%; background: var(--primary); width: 0%; transition: 1s; }
+
+        /* Onboarding */
+        #onboarding { position: fixed; inset: 0; background: var(--bg); z-index: 4000; padding: 30px; display: flex; flex-direction: column; justify-content: center; transition: 0.5s; }
+        .sw-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text-sec); font-weight: 600; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .sw-btn.active { background: var(--card); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <!-- TOAST -->
+    <div id="toast">Сохранено! 🚀</div>
+
     <!-- ONBOARDING -->
-    <div id="onboarding-screen" class="hidden">
-        <!-- Шаг 1: Имя -->
-        <div id="step-1" class="step active">
-            <div style="font-size: 60px; margin-bottom: 20px;">👋</div>
-            <h1>Давай знакомиться!</h1>
-            <p class="text-sm" style="margin-bottom: 40px;">Как тебя зовут?</p>
-            <input type="text" id="ob-name" class="std-input" placeholder="Твое имя" style="text-align:center">
-            <button class="btn-main" onclick="nextStep(2)">Далее</button>
+    <div id="onboarding" class="hidden">
+        <div style="font-size: 60px; margin-bottom: 20px;">💎</div>
+        <h1>Добро пожаловать!</h1>
+        <p class="text-sm" style="margin-bottom: 40px; margin-top: 10px;">Финансы, инвестиции и цели.<br>Просто и красиво.</p>
+        <input type="text" id="ob-name" class="std-input" placeholder="Как тебя зовут?">
+        <p class="text-xs" style="margin-top:20px;">Валюта по умолчанию</p>
+        <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
+            <button class="sw-btn active" onclick="setObCurr('₽', this)">₽</button>
+            <button class="sw-btn" onclick="setObCurr('$', this)">$</button>
+            <button class="sw-btn" onclick="setObCurr('€', this)">€</button>
         </div>
-        <!-- Шаг 2: Валюта -->
-        <div id="step-2" class="step">
-            <h1>Выбери валюту</h1>
-            <p class="text-sm" style="margin-bottom: 40px;">Основная валюта учета</p>
-            <div class="grid-5" style="margin-bottom: 40px;">
-                <div class="icon-box" onclick="selectCurrency('₽', this)">₽</div>
-                <div class="icon-box" onclick="selectCurrency('$', this)">$</div>
-                <div class="icon-box" onclick="selectCurrency('€', this)">€</div>
-                <div class="icon-box" onclick="selectCurrency('₸', this)">₸</div>
-                <div class="icon-box" onclick="selectCurrency('Br', this)">Br</div>
-            </div>
-            <button class="btn-main" onclick="nextStep(3)">Далее</button>
-        </div>
-        <!-- Шаг 3: Финиш -->
-        <div id="step-3" class="step">
-            <h1>Все готово! 🚀</h1>
-            <p class="text-sm" style="margin-bottom: 40px;">Мы создали для тебя кошелек "Основной".<br>Давай начнем управлять финансами.</p>
-            <button class="btn-main" onclick="finishOnboarding()">Поехали!</button>
-        </div>
-        <div class="dots"><div class="dot active" id="dot-1"></div><div class="dot" id="dot-2"></div><div class="dot" id="dot-3"></div></div>
+        <button class="btn-main" onclick="finishOnboarding()" style="margin-top: 20px;">Начать</button>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="app" class="container">
-        
-        <!-- HEADER -->
-        <header class="flex-between" style="margin-bottom: 24px; padding-top: 10px;">
+    <!-- HEADER -->
+    <div class="container">
+        <header class="flex-between" style="margin-bottom: 20px; padding-top: 10px;">
             <div>
-                <div class="status-badge">
-                    <div class="status-dot" id="sync-dot"></div>
-                    <span id="sync-text">Облако</span>
-                </div>
+                <h2 id="head-name">...</h2>
+                <div class="text-xs" id="head-id">ID: ...</div>
             </div>
-            <div class="flex-between" style="gap:10px">
-                <div style="text-align: right;">
-                    <div style="font-weight: 700; font-size: 18px;" id="header-name">...</div>
-                    <div class="text-xs" id="header-currency">RUB</div>
-                </div>
-                <div style="width: 40px; height: 40px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow);" onclick="toggleTheme()">
-                    <i class="ri-moon-line"></i>
-                </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-ghost" onclick="syncData()" style="font-size:24px;"><i class="ri-cloud-line" id="sync-icon"></i></button>
+                <button class="btn-ghost" onclick="toggleTheme()" style="font-size:24px;"><i class="ri-contrast-line"></i></button>
             </div>
         </header>
 
-        <!-- === 1. HOME SCREEN === -->
+        <!-- === 1. HOME === -->
         <div id="scr-home" class="screen active">
-            <!-- Balance -->
-            <div class="card" style="text-align: center; padding: 30px 20px;">
-                <div class="text-xs">Всего средств</div>
-                <div style="font-size: 42px; font-weight: 900; margin: 10px 0; letter-spacing: -1px;" id="total-bal">0</div>
+            <div class="card" style="text-align: center; padding: 35px 20px;">
+                <div class="text-xs">Общий капитал</div>
+                <div style="font-size: 42px; font-weight: 800; margin: 10px 0; letter-spacing: -1px;" id="total-bal">0</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px;">
                     <button class="btn-main" style="background: var(--bg); color: var(--danger); box-shadow: none;" onclick="openTxModal('expense')">
-                        <i class="ri-arrow-down-circle-fill"></i> Расход
+                        <i class="ri-arrow-down-line"></i> Расход
                     </button>
                     <button class="btn-main" style="background: var(--bg); color: var(--success); box-shadow: none;" onclick="openTxModal('income')">
-                        <i class="ri-arrow-up-circle-fill"></i> Доход
+                        <i class="ri-arrow-up-line"></i> Доход
                     </button>
                 </div>
             </div>
 
-            <!-- Quick Accounts -->
             <div class="flex-between"><h4>Счета</h4> <span class="text-xs" onclick="nav('wallet')">ВСЕ</span></div>
-            <div class="h-scroll" id="home-accs" style="margin-bottom: 20px;"></div>
+            <div class="h-scroll" id="home-accs"></div>
 
-            <!-- Transactions -->
-            <div class="flex-between"><h4>История</h4> <span class="text-xs" onclick="nav('stats')">АНАЛИЗ</span></div>
+            <div class="flex-between" style="margin-top:20px;"><h4>История</h4> <span class="text-xs" onclick="nav('stats')">АНАЛИЗ</span></div>
             <div id="home-txs"></div>
         </div>
 
-        <!-- === 2. INVEST SCREEN === -->
+        <!-- === 2. INVESTMENTS (GAMIFIED) === -->
         <div id="scr-invest" class="screen">
-            <h2>Инвестиции</h2>
-            <p class="text-sm">Рост твоего капитала</p>
-            <br>
-            <div class="card">
-                <div class="text-xs">Прогноз на год (+<span id="inv-forecast-pct">0</span>%)</div>
-                <div style="height: 200px;"><canvas id="chart-invest"></canvas></div>
-            </div>
+            <h2>Инвестиции & Цели 🎯</h2>
+            <p class="text-sm" style="margin-bottom: 20px;">Твой путь к богатству</p>
+            
             <div id="invest-list"></div>
+            
+            <div class="card" style="margin-top: 20px; border: 1px dashed var(--text-sec); background: transparent; text-align: center; cursor: pointer;" onclick="openAccModal('invest')">
+                <div style="font-size: 24px; color: var(--text-sec);">+</div>
+                <div class="text-sm">Добавить Цель или Актив</div>
+            </div>
         </div>
 
-        <!-- === 3. STATS SCREEN === -->
+        <!-- === 3. STATS === -->
         <div id="scr-stats" class="screen">
             <h2>Аналитика</h2>
             <br>
@@ -194,7 +167,7 @@
             <div id="stats-list"></div>
         </div>
 
-        <!-- === 4. WALLET SCREEN === -->
+        <!-- === 4. WALLET === -->
         <div id="scr-wallet" class="screen">
             <h2>Кошелек</h2>
             <br>
@@ -206,525 +179,352 @@
                 <div class="flex-between"><h4>Категории</h4> <button class="btn-ghost" onclick="openCatModal()">+ Добавить</button></div>
                 <div id="wallet-cats"></div>
             </div>
-            <button class="btn-main" style="background: #333; margin-top: 20px;" onclick="forceSync()">
-                <i class="ri-refresh-line"></i> Сброс кэша
-            </button>
+            
+            <button class="btn-main" onclick="forceSync()" style="background: #333; margin-top: 30px;">☁️ Синхронизировать</button>
+            <p class="text-sm" style="text-align: center; margin-top: 10px; opacity: 0.6;">Нажми, чтобы отправить данные в таблицу</p>
         </div>
-
     </div>
 
     <!-- NAVBAR -->
     <nav class="nav-bar">
         <button class="nav-item active" onclick="nav('home', this)"><i class="ri-home-4-fill"></i></button>
-        <button class="nav-item" onclick="nav('invest', this)"><i class="ri-line-chart-fill"></i></button>
-        <button class="nav-item" onclick="nav('stats', this)"><i class="ri-pie-chart-2-fill"></i></button>
+        <button class="nav-item" onclick="nav('invest', this)"><i class="ri-rocket-fill"></i></button>
+        <button class="nav-item" onclick="nav('stats', this)"><i class="ri-pie-chart-fill"></i></button>
         <button class="nav-item" onclick="nav('wallet', this)"><i class="ri-wallet-3-fill"></i></button>
     </nav>
 
     <!-- MODALS (SHEETS) -->
-    <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
+    <div class="modal-overlay" id="overlay" onclick="closeSheets()"></div>
 
-    <!-- 1. Transaction Sheet -->
+    <!-- TX SHEET -->
     <div id="sheet-tx" class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="flex-between"><h2 id="mtx-title">Расход</h2> <button class="btn-ghost" onclick="closeAllModals()">Закрыть</button></div>
-        
-        <input type="text" id="mtx-amt" class="money-input" placeholder="0" inputmode="decimal">
+        <div class="flex-between"><h2 id="mtx-title">Расход</h2> <button class="btn-ghost" onclick="closeSheets()">Закрыть</button></div>
+        <input type="number" id="mtx-amt" class="money-input" placeholder="0" inputmode="decimal">
         
         <div class="text-xs">Счет</div>
         <div class="h-scroll" id="mtx-accs" style="margin-bottom: 20px;"></div>
-
-        <div class="text-xs">Категория</div>
-        <div class="grid-5" id="mtx-cats"></div>
-
-        <div id="mtx-waste-wrap" style="margin-top: 20px; display: none;">
-            <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
-                <button class="sw-btn active" onclick="setWaste(false)" id="bw-no">Полезное ✅</button>
-                <button class="sw-btn" style="color:var(--danger)" onclick="setWaste(true)" id="bw-yes">Хотелка 🗑️</button>
-            </div>
-        </div>
         
-        <input type="text" id="mtx-note" class="std-input" placeholder="Комментарий..." style="margin-top: 15px;">
+        <div class="text-xs">Категория</div>
+        <div class="icon-grid" id="mtx-cats"></div>
+        
+        <div id="mtx-waste-wrap" class="card" style="padding: 5px; display: flex; background: var(--bg); margin-top: 20px; display: none;">
+            <button class="sw-btn active" onclick="setWaste(false)" id="bw-no">Полезное ✨</button>
+            <button class="sw-btn" style="color:var(--danger)" onclick="setWaste(true)" id="bw-yes">Импульсивно 🗑️</button>
+        </div>
+
+        <input type="text" id="mtx-note" class="std-input" placeholder="На что?" style="margin-top: 15px;">
         <button class="btn-main" onclick="saveTx()">Сохранить</button>
     </div>
 
-    <!-- 2. Account Sheet (Create/Edit) -->
+    <!-- ACC SHEET -->
     <div id="sheet-acc" class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="flex-between"><h2 id="macc-title">Счет</h2> <button class="btn-ghost" onclick="deleteAccInit()">Удалить</button></div>
+        <div class="flex-between"><h2>Счет</h2> <button class="btn-ghost" style="color:var(--danger)" onclick="delAcc()">Удалить</button></div>
         <br>
-        <input type="text" id="macc-name" class="std-input" placeholder="Название">
+        <input type="text" id="macc-name" class="std-input" placeholder="Название (напр. Тинькофф)">
         
+        <div class="text-xs">Тип счета</div>
         <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
             <button class="sw-btn active" onclick="setAccType('card')" id="bat-card">Карта</button>
-            <button class="sw-btn" onclick="setAccType('deposit')" id="bat-dep">Вклад</button>
-            <button class="sw-btn" onclick="setAccType('invest')" id="bat-inv">Инвест</button>
+            <button class="sw-btn" onclick="setAccType('deposit')" id="bat-dep">Вклад %</button>
+            <button class="sw-btn" onclick="setAccType('target')" id="bat-tar">Цель 🎯</button>
         </div>
 
-        <div id="macc-extra" style="display:none;">
+        <div id="macc-extra" class="hidden">
             <div class="flex-between" style="gap:10px">
-                <input type="number" id="macc-goal" class="std-input" placeholder="Цель">
-                <input type="number" id="macc-pct" class="std-input" placeholder="%">
+                <input type="number" id="macc-goal" class="std-input" placeholder="Цель (Сумма)">
+                <input type="number" id="macc-pct" class="std-input" placeholder="% годовых">
             </div>
         </div>
         
-        <label class="text-xs">Текущий баланс</label>
+        <div class="text-xs">Текущий баланс</div>
         <input type="number" id="macc-bal" class="std-input" placeholder="0">
-        
         <button class="btn-main" onclick="saveAcc()">Сохранить</button>
     </div>
 
-    <!-- 3. Category Sheet -->
+    <!-- CAT SHEET -->
     <div id="sheet-cat" class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="flex-between"><h2 id="mcat-title">Категория</h2> <button class="btn-ghost" onclick="deleteCatInit()">Удалить</button></div>
+        <div class="flex-between"><h2>Категория</h2> <button class="btn-ghost" style="color:var(--danger)" onclick="delCat()">Удалить</button></div>
         <br>
         <input type="text" id="mcat-name" class="std-input" placeholder="Название">
-        
         <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
             <button class="sw-btn active" onclick="setCatType('expense')" id="bct-exp">Расход</button>
             <button class="sw-btn" onclick="setCatType('income')" id="bct-inc">Доход</button>
         </div>
-        
-        <div class="grid-5" id="mcat-icons"></div>
+        <div class="icon-grid" id="mcat-icons"></div>
         <br>
         <button class="btn-main" onclick="saveCat()">Сохранить</button>
     </div>
 
     <script>
-        // --- CONFIG ---
-        // !!! ТВОЯ ССЫЛКА ЗДЕСЬ !!!
+        // === CONFIG ===
         const API_URL = 'https://script.google.com/macros/s/AKfycby_ES9U2-4VYmPhMLbDtNNv_ESnbUEI9nlw0euEHsxZ6eJqu340_LpF_A1pSxyUvRxG/exec';
         
-        // --- INIT ---
+        // === INIT ===
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
+        
+        let db = JSON.parse(localStorage.getItem('my_db_v9')) || { user: {name:'', curr:'₽'}, accounts: [], categories: [], transactions: [] };
+        let uid = localStorage.getItem('my_uid');
+        if(!uid) { uid = 'u'+Date.now(); localStorage.setItem('my_uid', uid); }
 
-        // State
-        let db = JSON.parse(localStorage.getItem('mcd_db')) || {
-            user: { name: '', currency: '₽', joined: 0 },
-            accounts: [],
-            categories: [
+        // Mock Data if empty
+        if(db.categories.length === 0) {
+            db.categories = [
                 {id:'c1', name:'Еда', type:'expense', icon:'ri-restaurant-line', color:'#F59E0B'},
-                {id:'c2', name:'Такси', type:'expense', icon:'ri-taxi-fill', color:'#3B82F6'},
-                {id:'c3', name:'Дом', type:'expense', icon:'ri-home-4-line', color:'#8B5CF6'},
-                {id:'c4', name:'Зарплата', type:'income', icon:'ri-briefcase-4-line', color:'#10B981'}
-            ],
-            transactions: []
-        };
+                {id:'c2', name:'Такси', type:'expense', icon:'ri-taxi-line', color:'#3B82F6'},
+                {id:'c3', name:'ЗП', type:'income', icon:'ri-briefcase-line', color:'#10B981'}
+            ];
+        }
+
+        // Onboarding Check
+        let obCurr = '₽';
+        if(!db.user.name) document.getElementById('onboarding').classList.remove('hidden');
+        else { updateHead(); syncData(); }
+
+        function setObCurr(c, el) { 
+            vibe(); obCurr=c; 
+            document.querySelectorAll('#onboarding .sw-btn').forEach(b=>b.classList.remove('active')); 
+            el.classList.add('active'); 
+        }
         
-        let USER_ID = localStorage.getItem('mcd_uid');
-        if(!USER_ID) {
-            USER_ID = tg.initDataUnsafe?.user?.id ? 'tg_'+tg.initDataUnsafe.user.id : 'user_'+Date.now().toString().slice(-6);
-            localStorage.setItem('mcd_uid', USER_ID);
-        }
-
-        // --- ONBOARDING FLOW ---
-        let obStep = 1;
-        let obCurrency = '₽';
-
-        // Check if user is new
-        if(!db.user.name || db.accounts.length === 0) {
-            document.getElementById('onboarding-screen').classList.remove('hidden');
-        } else {
-            updateHeader();
-            syncData();
-        }
-
-        function nextStep(s) {
-            vibe();
-            document.querySelectorAll('.step').forEach(el=>el.classList.remove('active'));
-            document.querySelectorAll('.dot').forEach(el=>el.classList.remove('active'));
-            document.getElementById('step-'+s).classList.add('active');
-            document.getElementById('dot-'+s).classList.add('active');
-            obStep = s;
-        }
-
-        function selectCurrency(c, el) {
-            vibe();
-            obCurrency = c;
-            document.querySelectorAll('.icon-box').forEach(b=>b.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-
         function finishOnboarding() {
-            vibe('success');
-            const nameInput = document.getElementById('ob-name');
-            const name = (nameInput && nameInput.value) ? nameInput.value : 'Босс';
-            
-            db.user = { name: name, currency: obCurrency, joined: Date.now() };
-            // Default Account
-            if(db.accounts.length === 0) {
-                db.accounts.push({ id:'a1', name:'Основной', type:'card', balance:0, start:0, goal:0, percent:0 });
-            }
-            
+            const name = document.getElementById('ob-name').value || 'Босс';
+            db.user = { name, curr: obCurr };
+            if(db.accounts.length===0) db.accounts.push({id:'a1', name:'Наличные', type:'card', balance:0, start:0});
             saveLocal();
-            
-            // Force Hide
-            const screen = document.getElementById('onboarding-screen');
-            screen.classList.add('closed');
-            setTimeout(() => { screen.style.display = 'none'; }, 500);
-
-            updateHeader();
-            renderAll();
-            syncData();
+            document.getElementById('onboarding').style.display='none';
+            updateHead(); renderAll(); syncData();
         }
 
-        // --- CORE LOGIC ---
-        function saveLocal() {
-            localStorage.setItem('mcd_db', JSON.stringify(db));
-            renderAll();
+        // === CORE ===
+        function saveLocal() { localStorage.setItem('my_db_v9', JSON.stringify(db)); renderAll(); }
+        function vibe(t='light') { try{ tg.HapticFeedback.impactOccurred(t); }catch(e){} }
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.classList.add('show'); vibe('success');
+            setTimeout(()=>t.classList.remove('show'), 2500);
         }
+        function updateHead() {
+            document.getElementById('head-name').innerText = db.user.name;
+            document.getElementById('head-id').innerText = db.user.curr;
+        }
+        function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.floor(n)) + ' ' + db.user.curr; }
 
-        function updateHeader() {
-            document.getElementById('header-name').innerText = db.user.name;
-            document.getElementById('header-currency').innerText = db.user.currency;
-        }
-
-        function vibe(style='light') { 
-            try { tg.HapticFeedback.impactOccurred(style); } catch(e){} 
-        }
-
-        function formatMoney(n) {
-            return new Intl.NumberFormat('ru-RU').format(Math.floor(n)) + ' ' + db.user.currency;
-        }
-
-        // --- SYNC SYSTEM ---
-        async function syncData() {
-            updateSyncStatus('syncing');
-            try {
-                const res = await fetch(`${API_URL}?action=load&user_id=${USER_ID}`);
-                const json = await res.json();
-                if(json.status === 'success') {
-                    if(json.data.accounts.length) db.accounts = json.data.accounts;
-                    if(json.data.categories.length) db.categories = json.data.categories;
-                    if(json.data.transactions.length) db.transactions = json.data.transactions;
-                    
-                    // Interest Calc
-                    let changed = false;
-                    const now = Date.now();
-                    db.accounts.forEach(acc => {
-                        if(acc.type !== 'card' && acc.percent > 0) {
-                            const last = acc.lastCalc || now;
-                            const days = (now - last) / 86400000;
-                            if(days >= 1) {
-                                const profit = acc.balance * (acc.percent/100/365) * days;
-                                if(profit > 1) {
-                                    db.transactions.push({id:'sys_'+Date.now(), date:new Date().toISOString(), amount:profit, type:'income', accountId:acc.id, categoryId:'sys', comment:'% Доход', isWaste:false});
-                                    acc.lastCalc = now; changed = true;
-                                }
-                            }
-                        }
-                    });
-                    
-                    if(changed) recalc(); else saveLocal();
-                    updateSyncStatus('online');
-                }
-            } catch(e) { 
-                console.error(e); 
-                updateSyncStatus('error');
-            }
-        }
-
-        function updateSyncStatus(s) {
-            const dot = document.getElementById('sync-dot');
-            const txt = document.getElementById('sync-text');
-            dot.className = 'status-dot ' + s;
-            txt.innerText = s==='syncing'?'Загрузка':(s==='online'?'В сети':'Ошибка');
-        }
-
-        async function pushTx(tx) {
-            try { fetch(API_URL+'?action=add_tx', {method:'POST', mode:'no-cors', body:JSON.stringify({...tx, user_id:USER_ID})}); } catch(e){}
-        }
-        
-        async function forceSync() {
-            if(!confirm('Перезаписать облако локальными данными?')) return;
-            updateSyncStatus('syncing');
-            try {
-                await fetch(API_URL+'?action=sync_all', {method:'POST', mode:'no-cors', body:JSON.stringify({user_id:USER_ID, accounts:db.accounts, categories:db.categories, transactions:db.transactions})});
-                alert('Успешно!');
-                updateSyncStatus('online');
-            } catch(e) { alert('Ошибка сети'); }
-        }
-
-        function recalc() {
-            // Reset balances to start
-            db.accounts.forEach(a => a.balance = parseFloat(a.start||0));
-            // Replay all tx
-            db.transactions.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(t => {
-                const acc = db.accounts.find(a => a.id == t.accountId);
-                if(acc) t.type==='income' ? acc.balance += t.amount : acc.balance -= t.amount;
-            });
-            saveLocal();
-        }
-
-        // --- RENDER ---
+        // === RENDER ===
         function renderAll() {
-            // 1. Home
-            const total = db.accounts.reduce((s,a)=>s+a.balance, 0);
-            document.getElementById('total-bal').innerText = formatMoney(total);
-            
+            // Total
+            const tot = db.accounts.reduce((s,a)=>s+a.balance,0);
+            document.getElementById('total-bal').innerText = fmt(tot);
+
+            // Home Accs
             document.getElementById('home-accs').innerHTML = db.accounts.map(a => `
                 <div class="acc-chip" onclick="editAcc('${a.id}')">
-                    <div class="flex-between">
-                        <div style="font-weight:700">${a.name}</div>
-                        ${a.percent ? `<span class="text-xs" style="background:var(--success); color:#fff; padding:2px 5px; border-radius:4px;">${a.percent}%</span>` : ''}
+                    <div class="flex-between"><b>${a.name}</b> <small>${a.type.toUpperCase().slice(0,3)}</small></div>
+                    <div style="font-size:18px; font-weight:800; color:var(--primary); margin-top:5px;">${fmt(a.balance)}</div>
+                </div>`).join('');
+
+            // Home Txs
+            const txs = db.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+            document.getElementById('home-txs').innerHTML = txs.map(t => {
+                const c = db.categories.find(x=>x.id==t.catId) || {name:'?', icon:'ri-question-line', color:'#999'};
+                return `<div class="card flex-between" style="padding:15px; margin-bottom:8px;">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <i class="${c.icon}" style="font-size:20px; color:${c.color}; background:${c.color}20; padding:8px; border-radius:10px;"></i>
+                        <div><b>${c.name}</b> ${t.waste?'🗑️':''}<br><small class="text-sm">${t.note||''}</small></div>
                     </div>
-                    <div style="font-size:18px; font-weight:700; color:var(--primary); margin-top:5px;">${formatMoney(a.balance)}</div>
-                    <div class="text-xs" style="margin-top:5px; opacity:0.6">${a.type.toUpperCase()}</div>
-                </div>
-            `).join('');
+                    <b style="color:${t.type=='expense'?'var(--text)':'var(--success)'}">${t.type=='expense'?'-':'+'}${fmt(t.amount)}</b>
+                </div>`;
+            }).join('');
 
-            const recent = db.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0, 8);
-            document.getElementById('home-txs').innerHTML = recent.map(t => renderTxRow(t)).join('');
+            // Invest Tab
+            const targets = db.accounts.filter(a => a.type !== 'card');
+            document.getElementById('invest-list').innerHTML = targets.map(a => {
+                const pct = a.goal > 0 ? Math.min(100, (a.balance/a.goal)*100) : 0;
+                return `<div class="card" onclick="editAcc('${a.id}')">
+                    <div class="flex-between">
+                        <div><b>${a.name}</b> ${a.type=='deposit'?'🏦':'🎯'}</div>
+                        <b>${fmt(a.balance)}</b>
+                    </div>
+                    ${a.goal>0 ? `<div class="flex-between text-xs" style="margin-top:5px;"><span>Цель: ${fmt(a.goal)}</span> <span>${Math.floor(pct)}%</span></div>
+                    <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>` : ''}
+                    ${a.percent>0 ? `<div class="text-xs" style="color:var(--success); margin-top:5px;">+${a.percent}% годовых</div>` : ''}
+                </div>`;
+            }).join('');
 
-            // 2. Invest
-            const invAccs = db.accounts.filter(a => a.type !== 'card');
-            document.getElementById('invest-list').innerHTML = invAccs.map(a => `
-                <div class="card flex-between">
-                    <div><b>${a.name}</b><br><span class="text-xs">${a.percent}% годовых</span></div>
-                    <div style="text-align:right"><b>${formatMoney(a.balance)}</b><br><span class="text-xs" style="color:var(--success)">+${formatMoney(a.balance*a.percent/100)} /год</span></div>
-                </div>
-            `).join('');
-            renderInvChart(invAccs);
-
-            // 3. Stats
+            // Wallet Lists
+            document.getElementById('wallet-accs').innerHTML = db.accounts.map(a => `<div class="flex-between" style="padding:10px; border-bottom:1px solid #eee;" onclick="editAcc('${a.id}')"><b>${a.name}</b> <span>${fmt(a.balance)}</span></div>`).join('');
+            document.getElementById('wallet-cats').innerHTML = db.categories.map(c => `<div class="flex-between" style="padding:10px; border-bottom:1px solid #eee;" onclick="editCat('${c.id}')"><div style="display:flex; align-items:center; gap:8px;"><i class="${c.icon}" style="color:${c.color}"></i> ${c.name}</div></div>`).join('');
+            
             renderStats();
-
-            // 4. Wallet
-            document.getElementById('wallet-accs').innerHTML = db.accounts.map(a => 
-                `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05)" onclick="editAcc('${a.id}')">
-                    <b>${a.name}</b> <span>${formatMoney(a.balance)}</span>
-                </div>`).join('');
-                
-            document.getElementById('wallet-cats').innerHTML = db.categories.map(c => 
-                `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05)" onclick="editCat('${c.id}')">
-                    <div style="display:flex; gap:10px; align-items:center"><i class="${c.icon}" style="color:${c.color}"></i> ${c.name}</div>
-                    <i class="ri-arrow-right-s-line" style="color:#ccc"></i>
-                </div>`).join('');
         }
 
-        function renderTxRow(t) {
-            const c = db.categories.find(x=>x.id==t.categoryId) || {name:'Системная', icon:'ri-settings-3-line', color:'#999'};
-            return `
-            <div class="card" style="padding:12px 15px; margin-bottom:8px; display:flex; align-items:center; gap:12px;">
-                <div style="width:40px; height:40px; border-radius:12px; background:${c.color}20; color:${c.color}; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="${c.icon}"></i></div>
-                <div style="flex:1">
-                    <div style="font-weight:600; font-size:15px;">${c.name} ${t.isWaste?'🗑️':''}</div>
-                    <div class="text-xs" style="margin:0; opacity:0.6">${new Date(t.date).toLocaleDateString()} • ${t.comment||''}</div>
-                </div>
-                <div style="font-weight:700; color:${t.type=='expense'?'var(--text)':'var(--success)'}">
-                    ${t.type=='expense'?'-':'+'}${Math.floor(t.amount)}
-                </div>
-                <i class="ri-delete-bin-line" style="color:var(--danger); padding:10px; opacity:0.3;" onclick="deleteTx('${t.id}')"></i>
-            </div>`;
-        }
-
-        // --- CHARTS ---
-        function renderInvChart(accs) {
-            const ctx = document.getElementById('chart-invest');
-            const total = accs.reduce((s,a)=>s+a.balance, 0);
-            const profit = accs.reduce((s,a)=>s+(a.balance*a.percent/100), 0);
-            document.getElementById('inv-forecast-pct').innerText = total>0 ? (profit/total*100).toFixed(1) : 0;
-            
-            // Generate simple projection data
-            const labels = ['Сейчас', '3 мес', '6 мес', '9 мес', '12 мес'];
-            const data = [total, total+profit*0.25, total+profit*0.5, total+profit*0.75, total+profit];
-            
-            if(window.invChart) window.invChart.destroy();
-            window.invChart = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets: [{ data, borderColor: '#6366F1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] },
-                options: { maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{display:false}} }
-            });
-        }
-
-        let statMode = 'expense';
-        function setStatMode(m, el) { 
-            vibe(); statMode=m; document.querySelectorAll('.sw-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderStats(); 
-        }
-
+        // === STATS ===
+        let statType = 'expense';
+        function setStatMode(t, el) { vibe(); statType=t; document.querySelectorAll('#scr-stats .sw-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderAll(); }
+        
         function renderStats() {
             const ctx = document.getElementById('chart-pie');
-            const txs = db.transactions.filter(t => t.type === statMode);
-            const cats = {}; txs.forEach(t => cats[t.categoryId] = (cats[t.categoryId]||0)+t.amount);
+            const relTxs = db.transactions.filter(t => t.type === statType);
+            const cats = {}; relTxs.forEach(t => cats[t.catId] = (cats[t.catId]||0) + t.amount);
             
-            if(window.pieChart) window.pieChart.destroy();
-            window.pieChart = new Chart(ctx, {
+            if(window.pChart) window.pChart.destroy();
+            window.pChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(cats).map(id=>db.categories.find(c=>c.id==id)?.name),
-                    datasets: [{ data: Object.values(cats), backgroundColor: ['#F59E0B','#3B82F6','#10B981','#8B5CF6','#EF4444','#EC4899'], borderWidth:0 }]
-                },
-                options: { maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:10}}} }
+                    labels: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.name),
+                    datasets: [{ data: Object.values(cats), backgroundColor: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.color), borderWidth:0 }]
+                }, options: { maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:10}}} }
             });
             
-            document.getElementById('stats-list').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([id,val])=>{
-                const c = db.categories.find(x=>x.id==id)||{name:'?',color:'#ccc'};
-                return `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05)">
-                    <div style="display:flex; gap:10px; align-items:center"><div style="width:10px; height:10px; border-radius:50%; background:${c.color}"></div> ${c.name}</div>
-                    <b>${formatMoney(val)}</b>
+            document.getElementById('stats-list').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([id,v]) => {
+                const c = db.categories.find(x=>x.id==id)||{name:'?',color:'#999'};
+                return `<div class="flex-between" style="padding:10px; border-bottom:1px solid #eee;">
+                    <div style="display:flex; gap:10px; align-items:center;"><div style="width:10px; height:10px; border-radius:50%; background:${c.color}"></div> ${c.name}</div>
+                    <b>${fmt(v)}</b>
                 </div>`;
             }).join('');
         }
 
-        // --- ACTIONS & MODALS ---
-        let curTx = { type:'expense', acc:'', cat:'', waste:false };
+        // === ACTIONS ===
+        let curTx = {type:'expense', acc:'', cat:'', waste:false};
         
         function openTxModal(type) {
-            vibe();
-            curTx = { type, acc: db.accounts[0]?.id, cat:'', waste:false };
+            vibe(); curTx = {type, acc:db.accounts[0]?.id, cat:'', waste:false};
             document.getElementById('mtx-title').innerText = type=='expense'?'Расход':'Доход';
-            document.getElementById('mtx-amt').value = '';
-            document.getElementById('mtx-waste-wrap').style.display = type=='expense'?'block':'none';
+            document.getElementById('mtx-amt').value = ''; 
+            document.getElementById('mtx-note').value = '';
+            document.getElementById('mtx-waste-wrap').style.display = type=='expense'?'flex':'none';
             
             // Accs
             document.getElementById('mtx-accs').innerHTML = db.accounts.map(a => `
-                <div class="acc-chip" onclick="curTx.acc='${a.id}'; hilight(this, 'acc-chip')">
+                <div class="acc-chip" onclick="curTx.acc='${a.id}'; hi(this,'acc-chip')">
                     <b>${a.name}</b><br><small>${Math.floor(a.balance)}</small>
                 </div>`).join('');
-            if(document.getElementById('mtx-accs').firstChild) document.getElementById('mtx-accs').firstChild.classList.add('active');
+            if(document.getElementById('mtx-accs').firstChild) document.getElementById('mtx-accs').firstChild.classList.add('selected');
 
             // Cats
             document.getElementById('mtx-cats').innerHTML = db.categories.filter(c=>c.type==type).map(c => `
-                <div class="icon-box" style="color:${c.color}" onclick="curTx.cat='${c.id}'; hilight(this, 'icon-box')">
-                    <i class="${c.icon}"></i>
-                </div>`).join('');
-
+                <div class="icon-box" style="color:${c.color}" onclick="curTx.cat='${c.id}'; hi(this,'icon-box')"><i class="${c.icon}"></i></div>`).join('');
+            
             openSheet('sheet-tx');
         }
 
         function saveTx() {
             const amt = parseFloat(document.getElementById('mtx-amt').value);
             if(!amt || !curTx.acc || !curTx.cat) return vibe('error');
-            vibe('success');
+            
             const tx = {
-                id: 'tx_'+Date.now(),
-                date: new Date().toISOString(),
-                amount: amt,
-                type: curTx.type,
-                accountId: curTx.acc,
-                categoryId: curTx.cat,
-                comment: document.getElementById('mtx-note').value,
-                isWaste: curTx.waste
+                id: 'tx_'+Date.now(), date: new Date().toISOString(),
+                amount: amt, type: curTx.type, accountId: curTx.acc, catId: curTx.cat,
+                note: document.getElementById('mtx-note').value, waste: curTx.waste
             };
             db.transactions.push(tx);
-            recalc(); pushTx(tx); closeAllModals();
+            
+            // Phrases
+            const quotes = curTx.type=='expense' 
+                ? (curTx.waste ? ["Ну и ладно, один раз живем!", "Эх, гуляй шальная!"] : ["Инвестиция в себя!", "Полезная трата."])
+                : ["Деньги к деньгам! 🤑", "Богатеем!", "Кэшфлоу растет!"];
+            
+            recalc(); pushTx(tx); closeSheets();
+            toast(quotes[Math.floor(Math.random()*quotes.length)]);
         }
 
-        // --- ACCOUNTS EDIT ---
-        let editAccId = null;
-        let newAccType = 'card';
+        // === EDITING ===
+        let editId = null; let newAT = 'card'; let newCT = 'expense';
         
-        function openAccModal() { editAccId=null; setupAccModal(); openSheet('sheet-acc'); }
-        function editAcc(id) { editAccId=id; setupAccModal(db.accounts.find(a=>a.id==id)); openSheet('sheet-acc'); }
+        function openAccModal(t) { editId=null; setupAccModal(); if(t) setAccType(t); openSheet('sheet-acc'); }
+        function editAcc(id) { editId=id; setupAccModal(db.accounts.find(a=>a.id==id)); openSheet('sheet-acc'); }
         
-        function setupAccModal(acc) {
-            document.getElementById('macc-title').innerText = acc ? 'Редактировать' : 'Новый счет';
-            document.getElementById('macc-name').value = acc ? acc.name : '';
-            document.getElementById('macc-bal').value = acc ? acc.start : '';
-            document.getElementById('macc-goal').value = acc ? acc.goal : '';
-            document.getElementById('macc-pct').value = acc ? acc.percent : '';
-            setAccType(acc ? acc.type : 'card');
+        function setupAccModal(a) {
+            document.getElementById('macc-name').value = a ? a.name : '';
+            document.getElementById('macc-bal').value = a ? a.start : '';
+            document.getElementById('macc-goal').value = a ? a.goal : '';
+            document.getElementById('macc-pct').value = a ? a.percent : '';
+            setAccType(a ? a.type : 'card');
         }
-
         function setAccType(t) {
-            vibe(); newAccType=t;
-            ['card','dep','inv'].forEach(x => document.getElementById('bat-'+x).classList.remove('active'));
-            document.getElementById('bat-'+(t=='card'?'card':(t=='deposit'?'dep':'inv'))).classList.add('active');
-            document.getElementById('macc-extra').style.display = t=='card'?'none':'block';
+            vibe(); newAT=t;
+            ['card','dep','tar'].forEach(x => document.getElementById('bat-'+x).classList.remove('active'));
+            document.getElementById('bat-'+(t=='deposit'?'dep':(t=='target'?'tar':'card'))).classList.add('active');
+            document.getElementById('macc-extra').classList.toggle('hidden', t=='card');
         }
-
         function saveAcc() {
-            const name = document.getElementById('macc-name').value;
-            if(!name) return vibe('error');
+            const name = document.getElementById('macc-name').value; if(!name) return;
             const data = {
-                id: editAccId || 'acc_'+Date.now(),
-                name, type: newAccType,
+                id: editId || 'a_'+Date.now(), name, type: newAT,
                 start: parseFloat(document.getElementById('macc-bal').value)||0,
                 goal: parseFloat(document.getElementById('macc-goal').value)||0,
-                percent: parseFloat(document.getElementById('macc-pct').value)||0,
+                percent: parseFloat(document.getElementById('macc-pct').value)||0
             };
-            
-            if(editAccId) {
-                const idx = db.accounts.findIndex(a=>a.id==editAccId);
-                data.balance = db.accounts[idx].balance; 
-                if(data.start !== db.accounts[idx].start) data.balance = data.start; 
-                db.accounts[idx] = {...db.accounts[idx], ...data};
-            } else {
-                data.balance = data.start;
-                db.accounts.push(data);
-            }
-            recalc(); closeAllModals();
+            if(editId) {
+                const i = db.accounts.findIndex(a=>a.id==editId);
+                data.balance = db.accounts[i].balance; // Keep calc logic
+                if(data.start!=db.accounts[i].start) data.balance = data.start;
+                db.accounts[i] = {...db.accounts[i], ...data};
+            } else { data.balance = data.start; db.accounts.push(data); }
+            recalc(); closeSheets(); toast('Счет сохранен ✅');
         }
-        
-        function deleteAccInit() {
-            if(editAccId && confirm('Удалить счет?')) {
-                db.accounts = db.accounts.filter(a=>a.id!=editAccId);
-                recalc(); closeAllModals();
-            }
-        }
+        function delAcc() { if(editId && confirm('Удалить счет?')) { db.accounts = db.accounts.filter(a=>a.id!=editId); recalc(); closeSheets(); } }
 
-        // --- CATEGORIES EDIT ---
-        let editCatId = null;
-        let newCatType = 'expense';
+        // Cats
+        function openCatModal() { editId=null; setupCatModal(); openSheet('sheet-cat'); }
+        function editCat(id) { editId=id; setupCatModal(db.categories.find(c=>c.id==id)); openSheet('sheet-cat'); }
         
-        function openCatModal() { editCatId=null; setupCatModal(); openSheet('sheet-cat'); }
-        function editCat(id) { editCatId=id; setupCatModal(db.categories.find(c=>c.id==id)); openSheet('sheet-cat'); }
-        
-        function setupCatModal(cat) {
-            document.getElementById('mcat-title').innerText = cat ? 'Редактировать' : 'Новая категория';
-            document.getElementById('mcat-name').value = cat ? cat.name : '';
-            setCatType(cat ? cat.type : 'expense');
-            const icons = ['ri-star-line','ri-home-4-line','ri-car-line','ri-shopping-cart-2-line','ri-gift-line','ri-heart-3-line','ri-plane-line','ri-book-open-line','ri-t-shirt-line','ri-cup-line','ri-gamepad-line','ri-scissors-cut-line','ri-first-aid-kit-line','ri-bank-card-line','ri-briefcase-4-line'];
-            document.getElementById('mcat-icons').innerHTML = icons.map(i => `<div class="icon-box" onclick="hilight(this,'icon-box'); curTx.catIcon='${i}'"><i class="${i}"></i></div>`).join('');
+        function setupCatModal(c) {
+            document.getElementById('mcat-name').value = c ? c.name : '';
+            setCatType(c ? c.type : 'expense');
+            const icons = ['ri-star-line','ri-home-4-line','ri-car-line','ri-shopping-cart-2-line','ri-gift-line','ri-heart-3-line','ri-plane-line','ri-book-open-line','ri-t-shirt-line','ri-cup-line','ri-gamepad-line','ri-scissors-cut-line','ri-briefcase-4-line'];
+            document.getElementById('mcat-icons').innerHTML = icons.map(i => `<div class="icon-box" onclick="hi(this,'icon-box'); curTx.catIcon='${i}'"><i class="${i}"></i></div>`).join('');
         }
-        
-        function setCatType(t) { newCatType=t; document.getElementById('bct-exp').classList.toggle('active', t=='expense'); document.getElementById('bct-inc').classList.toggle('active', t=='income'); }
-        
+        function setCatType(t) { newCT=t; document.getElementById('bct-exp').classList.toggle('active', t=='expense'); document.getElementById('bct-inc').classList.toggle('active', t=='income'); }
         function saveCat() {
-            const name = document.getElementById('mcat-name').value;
-            if(!name) return vibe('error');
-            const data = {
-                id: editCatId || 'cat_'+Date.now(),
-                name, type: newCatType, 
-                icon: curTx.catIcon || 'ri-star-line', 
-                color: '#'+Math.floor(Math.random()*16777215).toString(16)
-            };
-            if(editCatId) {
-                const idx = db.categories.findIndex(c=>c.id==editCatId);
-                db.categories[idx] = data;
-            } else {
-                db.categories.push(data);
-            }
-            saveLocal(); closeAllModals();
+            const name = document.getElementById('mcat-name').value; if(!name) return;
+            const data = { id: editId||'c_'+Date.now(), name, type: newCT, icon: curTx.catIcon||'ri-star-line', color: '#'+Math.floor(Math.random()*16777215).toString(16) };
+            if(editId) { const i = db.categories.findIndex(c=>c.id==editId); db.categories[i] = data; }
+            else db.categories.push(data);
+            saveLocal(); closeSheets(); toast('Категория готова 👍');
+        }
+        function delCat() { if(editId && confirm('Удалить?')) { db.categories = db.categories.filter(c=>c.id!=editId); saveLocal(); closeSheets(); } }
+
+        // === SYNC & UTILS ===
+        function recalc() {
+            db.accounts.forEach(a => a.balance = parseFloat(a.start||0));
+            db.transactions.forEach(t => {
+                const acc = db.accounts.find(a=>a.id==t.accountId);
+                if(acc) t.type=='income' ? acc.balance+=t.amount : acc.balance-=t.amount;
+            });
+            saveLocal();
         }
 
-        function deleteCatInit() {
-            if(editCatId && confirm('Удалить?')) {
-                db.categories = db.categories.filter(c=>c.id!=editCatId);
-                saveLocal(); closeAllModals();
-            }
+        async function syncData() {
+            const icon = document.getElementById('sync-icon'); icon.className = 'ri-loader-4-line spin';
+            try {
+                const res = await fetch(`${API_URL}?action=load&user_id=${uid}`);
+                const j = await res.json();
+                if(j.status=='success' && j.data.accounts.length) {
+                    db.accounts = j.data.accounts; db.categories = j.data.categories; db.transactions = j.data.transactions;
+                    recalc(); toast('Данные загружены из облака ☁️');
+                }
+            } catch(e){} finally { icon.className = 'ri-cloud-line'; }
         }
-
-        function deleteTx(id) {
-            if(confirm('Удалить операцию?')) {
-                db.transactions = db.transactions.filter(t=>t.id!=id);
-                recalc();
-            }
+        async function forceSync() {
+            if(!confirm('Записать данные в таблицу?')) return;
+            const icon = document.getElementById('sync-icon'); icon.className = 'ri-loader-4-line spin';
+            try {
+                await fetch(API_URL+'?action=sync_all', {method:'POST', mode:'no-cors', body:JSON.stringify({user_id:uid, accounts:db.accounts, categories:db.categories, transactions:db.transactions})});
+                toast('Все сохранено в Google! ✅');
+            } catch(e){ alert('Ошибка'); } finally { icon.className = 'ri-cloud-line'; }
         }
+        async function pushTx(tx) { try { fetch(API_URL+'?action=add_tx', {method:'POST', mode:'no-cors', body:JSON.stringify({...tx, user_id:uid})}); } catch(e){} }
 
-        // --- UTILS ---
         function openSheet(id) { vibe(); document.getElementById('overlay').classList.add('open'); document.getElementById(id).classList.add('open'); }
-        function closeAllModals() { document.getElementById('overlay').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
-        function hilight(el, cls) { document.querySelectorAll('.'+cls).forEach(x=>x.classList.remove('active','selected')); el.classList.add(cls=='icon-box'?'selected':'active'); }
+        function closeSheets() { document.getElementById('overlay').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
+        function nav(s,b) { vibe(); document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active')); document.getElementById('scr-'+s).classList.add('active'); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); if(b) b.classList.add('active'); if(s=='stats') renderStats(); }
+        function hi(el, cls) { document.querySelectorAll('.'+cls).forEach(x=>x.classList.remove('selected')); el.classList.add('selected'); }
         function setWaste(w) { curTx.waste=w; document.getElementById('bw-no').classList.toggle('active', !w); document.getElementById('bw-yes').classList.toggle('active', w); }
-        function nav(scr, btn) { vibe(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('scr-'+scr).classList.add('active'); document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); if(scr=='stats') renderStats(); }
         function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')=='dark'?'light':'dark'); }
 
-        // Start
-        recalc();
+        renderAll();
     </script>
 </body>
 </html>
