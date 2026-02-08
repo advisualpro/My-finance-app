@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyCosts Diamond</title>
+    <title>MyCosts Diamond Fixed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -16,7 +16,6 @@
             --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
             --radius: 24px; --shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
             --font: 'Inter', sans-serif;
-            --nav-height: 80px;
         }
         [data-theme="dark"] {
             --bg: #0F172A; --card: #1E293B; --text: #F9FAFB; --text-sec: #94A3B8;
@@ -26,41 +25,33 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding-bottom: 120px; user-select: none; overflow-x: hidden; }
         
-        /* Typography & Layout */
         .container { padding: 20px; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
         h1 { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin: 0; }
         h2 { font-size: 20px; font-weight: 700; margin: 0; }
         .text-sm { font-size: 13px; color: var(--text-sec); }
         .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.8px; margin-bottom: 8px; display: block; }
         
-        /* Cards */
         .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); position: relative; transition: transform 0.1s; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .flex-col { display: flex; flex-direction: column; gap: 5px; }
         
-        /* Inputs Custom */
-        .money-input { width: 100%; font-size: 42px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; font-variant-numeric: tabular-nums; }
+        .money-input { width: 100%; font-size: 42px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; }
         .std-input { width: 100%; padding: 18px; border-radius: 18px; background: var(--bg); border: 2px solid transparent; color: var(--text); font-size: 16px; margin-bottom: 15px; transition: 0.3s; }
         .std-input:focus { background: var(--card); border-color: var(--primary); }
 
-        /* Buttons */
         .btn-main { width: 100%; padding: 18px; border-radius: 20px; background: var(--primary); color: white; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
         .btn-main:active { transform: scale(0.96); }
         .btn-ghost { background: transparent; color: var(--primary); border: none; font-weight: 600; padding: 10px; }
         
-        /* Navigation (Floating) */
         .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; margin: auto; max-width: 440px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-radius: 30px; padding: 10px 25px; display: flex; justify-content: space-between; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.2); z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
         [data-theme="dark"] .nav-bar { background: rgba(30, 41, 59, 0.85); border-color: rgba(255,255,255,0.05); }
         .nav-item { border: none; background: none; color: var(--text-sec); font-size: 26px; padding: 10px; position: relative; transition: 0.3s; }
         .nav-item.active { color: var(--primary); transform: translateY(-3px); }
         .nav-item.active::after { content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--primary); }
 
-        /* Screens Logic */
         .screen { display: none; animation: fadeUp 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-        /* Custom Components */
         .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: var(--bg); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: 0.3s; }
         .status-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
@@ -68,27 +59,26 @@
         .status-dot.error { background: var(--danger); }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-        /* Sliders */
         .h-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; margin: 0 -5px; padding: 0 5px; scrollbar-width: none; }
-        .acc-chip { min-width: 140px; background: var(--card); border: 1px solid rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; position: relative; }
+        .acc-chip { min-width: 140px; background: var(--card); border: 1px solid rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; position: relative; flex-shrink: 0; }
         .acc-chip.active { border-color: var(--primary); background: var(--primary-soft); }
         
-        /* Modals */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
         .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 30px 30px 0 0; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; max-height: 90vh; overflow-y: auto; }
         .sheet.open { transform: translateY(0); }
         .sheet-handle { width: 40px; height: 5px; background: var(--text-sec); opacity: 0.2; border-radius: 10px; margin: 0 auto 20px; }
 
-        /* Onboarding */
-        #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; padding: 30px; display: flex; flex-direction: column; justify-content: center; transition: 0.5s; }
+        /* Onboarding Styles Fixed */
+        #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; padding: 30px; display: flex; flex-direction: column; justify-content: center; transition: opacity 0.5s; opacity: 1; }
+        #onboarding-screen.closed { opacity: 0; pointer-events: none; }
+        
         .step { display: none; text-align: center; }
         .step.active { display: block; animation: fadeUp 0.4s; }
         .dots { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
         .dot.active { background: var(--primary); width: 20px; border-radius: 10px; }
 
-        /* Icons Grid */
         .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .icon-box { aspect-ratio: 1; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; transition: 0.2s; }
         .icon-box.selected { background: var(--primary); color: white; transform: scale(1.1); }
@@ -178,7 +168,7 @@
             <div id="home-txs"></div>
         </div>
 
-        <!-- === 2. INVEST SCREEN (NEW) === -->
+        <!-- === 2. INVEST SCREEN === -->
         <div id="scr-invest" class="screen">
             <h2>Инвестиции</h2>
             <p class="text-sm">Рост твоего капитала</p>
@@ -300,8 +290,7 @@
         <br>
         <button class="btn-main" onclick="saveCat()">Сохранить</button>
     </div>
-    
-    <!-- End of Block 1 -->
+
     <script>
         // --- CONFIG ---
         // !!! ТВОЯ ССЫЛКА ЗДЕСЬ !!!
@@ -335,6 +324,7 @@
         let obStep = 1;
         let obCurrency = '₽';
 
+        // Check if user is new
         if(!db.user.name || db.accounts.length === 0) {
             document.getElementById('onboarding-screen').classList.remove('hidden');
         } else {
@@ -360,13 +350,24 @@
 
         function finishOnboarding() {
             vibe('success');
-            const name = document.getElementById('ob-name').value || 'Босс';
-            db.user = { name, currency: obCurrency, joined: Date.now() };
+            const nameInput = document.getElementById('ob-name');
+            const name = (nameInput && nameInput.value) ? nameInput.value : 'Босс';
+            
+            db.user = { name: name, currency: obCurrency, joined: Date.now() };
             // Default Account
-            db.accounts.push({ id:'a1', name:'Основной', type:'card', balance:0, start:0, goal:0, percent:0 });
+            if(db.accounts.length === 0) {
+                db.accounts.push({ id:'a1', name:'Основной', type:'card', balance:0, start:0, goal:0, percent:0 });
+            }
+            
             saveLocal();
-            document.getElementById('onboarding-screen').classList.add('hidden');
+            
+            // Force Hide
+            const screen = document.getElementById('onboarding-screen');
+            screen.classList.add('closed');
+            setTimeout(() => { screen.style.display = 'none'; }, 500);
+
             updateHeader();
+            renderAll();
             syncData();
         }
 
@@ -581,7 +582,7 @@
             // Accs
             document.getElementById('mtx-accs').innerHTML = db.accounts.map(a => `
                 <div class="acc-chip" onclick="curTx.acc='${a.id}'; hilight(this, 'acc-chip')">
-                    <b>${a.name}</b><br><small>${formatMoney(a.balance)}</small>
+                    <b>${a.name}</b><br><small>${Math.floor(a.balance)}</small>
                 </div>`).join('');
             if(document.getElementById('mtx-accs').firstChild) document.getElementById('mtx-accs').firstChild.classList.add('active');
 
@@ -648,8 +649,8 @@
             
             if(editAccId) {
                 const idx = db.accounts.findIndex(a=>a.id==editAccId);
-                data.balance = db.accounts[idx].balance; // Keep calculated balance logic for now, but usually reset on edit
-                if(data.start !== db.accounts[idx].start) data.balance = data.start; // Reset if start changed
+                data.balance = db.accounts[idx].balance; 
+                if(data.start !== db.accounts[idx].start) data.balance = data.start; 
                 db.accounts[idx] = {...db.accounts[idx], ...data};
             } else {
                 data.balance = data.start;
@@ -676,7 +677,6 @@
             document.getElementById('mcat-title').innerText = cat ? 'Редактировать' : 'Новая категория';
             document.getElementById('mcat-name').value = cat ? cat.name : '';
             setCatType(cat ? cat.type : 'expense');
-            // Render Icons
             const icons = ['ri-star-line','ri-home-4-line','ri-car-line','ri-shopping-cart-2-line','ri-gift-line','ri-heart-3-line','ri-plane-line','ri-book-open-line','ri-t-shirt-line','ri-cup-line','ri-gamepad-line','ri-scissors-cut-line','ri-first-aid-kit-line','ri-bank-card-line','ri-briefcase-4-line'];
             document.getElementById('mcat-icons').innerHTML = icons.map(i => `<div class="icon-box" onclick="hilight(this,'icon-box'); curTx.catIcon='${i}'"><i class="${i}"></i></div>`).join('');
         }
