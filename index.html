@@ -211,12 +211,14 @@
             return false;
         };
     </script>
+   <body>
+
     <!-- ========================================== -->
     <!-- 1. ЗАСТАВКА (PRELOADER)                    -->
     <!-- ========================================== -->
-    <div id="screen-splash" style="position:fixed; inset:0; background:#000; z-index:9000; display:flex; align-items:center; justify-content:center; transition:0.5s;">
-        <div style="width:40px; height:40px; border:3px solid #333; border-top-color:var(--brand-primary); border-radius:50%; animation:spin 1s infinite;"></div>
-        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <!-- ИСПРАВЛЕНО: id="splash" (было screen-splash) -->
+    <div id="splash">
+        <div class="spinner"></div>
     </div>
 
     <!-- ========================================== -->
@@ -248,7 +250,7 @@
     <div id="screen-app" class="container hidden">
         
         <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
-        <div class="flex-row" style="margin-bottom: 20px; padding-top: 10px;">
+        <div class="flex-between" style="margin-bottom: 20px; padding-top: 10px;">
             <div class="status-pill" onclick="Sync.force()">
                 <div class="status-dot" id="sync-dot"></div>
                 <span id="sync-text">CONNECTING</span>
@@ -260,10 +262,10 @@
         <div id="view-home">
             
             <!-- МАШИНА ВРЕМЕНИ (ВЫБОР МЕСЯЦА) -->
-            <div class="date-picker">
-                <i class="ri-arrow-left-s-line date-arrow" onclick="Time.prev()"></i>
-                <div class="date-value" id="month-label">...</div>
-                <i class="ri-arrow-right-s-line date-arrow" onclick="Time.next()"></i>
+            <div class="date-navigator">
+                <button class="date-btn" onclick="TimeMachine.prev()"><i class="ri-arrow-left-s-line"></i></button>
+                <div class="date-label" id="month-display">...</div>
+                <button class="date-btn" onclick="TimeMachine.next()"><i class="ri-arrow-right-s-line"></i></button>
             </div>
 
             <!-- ГЛАВНЫЙ БАЛАНС -->
@@ -272,10 +274,10 @@
                 <div class="input-money" style="font-size:42px; padding:10px 0;" id="val-total">0 ₽</div>
                 
                 <div class="grid-2" style="margin-top:24px;">
-                    <button class="btn btn-secondary" style="color:var(--color-danger); background:rgba(255,69,58,0.1)" onclick="UI.openTx('expense')">
+                    <button class="btn btn-secondary" style="color:var(--danger-color); background:rgba(255,69,58,0.1)" onclick="Modal.openTx('expense')">
                         <i class="ri-arrow-down-line"></i> Расход
                     </button>
-                    <button class="btn btn-secondary" style="color:var(--color-success); background:rgba(48,209,88,0.1)" onclick="UI.openTx('income')">
+                    <button class="btn btn-secondary" style="color:var(--success-color); background:rgba(48,209,88,0.1)" onclick="Modal.openTx('income')">
                         <i class="ri-arrow-up-line"></i> Доход
                     </button>
                 </div>
@@ -283,47 +285,47 @@
 
             <!-- CASHFLOW & FREEDOM -->
             <div class="card">
-                <div class="flex-row">
+                <div class="flex-between">
                     <span class="text-label" style="margin:0">ФИНАНСОВАЯ СВОБОДА</span>
                     <span style="font-weight:800" id="val-freedom">0%</span>
                 </div>
-                <div class="progress-container">
-                    <div class="progress-bar bg-green" id="bar-freedom" style="width:0%"></div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-green" id="bar-freedom" style="width:0%"></div>
                 </div>
-                <div class="flex-row" style="margin-top:12px;">
+                <div class="flex-between" style="margin-top:12px;">
                     <div>
                         <span class="text-label" style="font-size:10px">ПАССИВНЫЙ</span>
-                        <div style="font-weight:700; color:var(--color-success)" id="val-passive">0 ₽</div>
+                        <div style="font-weight:700; color:var(--success-color)" id="val-passive">0 ₽</div>
                     </div>
                     <div style="text-align:right;">
                         <span class="text-label" style="font-size:10px">РАСХОДЫ (МЕС)</span>
-                        <div style="font-weight:700; color:var(--color-danger)" id="val-expense">0 ₽</div>
+                        <div style="font-weight:700; color:var(--danger-color)" id="val-expense">0 ₽</div>
                     </div>
                 </div>
             </div>
 
             <!-- БЮДЖЕТ -->
             <div class="card">
-                <div class="flex-row">
+                <div class="flex-between">
                     <span class="text-label" style="margin:0">ОСТАТОК БЮДЖЕТА</span>
                     <span style="font-weight:700" id="val-budget">0 ₽</span>
                 </div>
-                <div class="progress-container">
-                    <div class="progress-bar bg-red" id="bar-budget" style="width:0%"></div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-red" id="bar-budget" style="width:0%"></div>
                 </div>
             </div>
 
             <!-- СЧЕТА -->
-            <div class="flex-row" style="margin-bottom:12px;">
+            <div class="flex-between" style="margin-bottom:12px;">
                 <h3>Мои Счета</h3>
-                <span class="text-label" style="color:var(--brand-primary); cursor:pointer;" onclick="UI.nav('wallet')">ВСЕ</span>
+                <span class="text-label" style="color:var(--primary-color); cursor:pointer;" onclick="Nav.to('wallet')">ВСЕ</span>
             </div>
-            <div class="scroll-h" id="list-acc-home"></div>
+            <div class="horizontal-scroll" id="list-acc-home"></div>
 
             <!-- ИСТОРИЯ -->
-            <div class="flex-row" style="margin-top:24px; margin-bottom:12px;">
+            <div class="flex-between" style="margin-top:24px; margin-bottom:12px;">
                 <h3>История</h3>
-                <span class="text-label" style="color:var(--brand-primary); cursor:pointer;" onclick="UI.nav('stats')">АНАЛИЗ</span>
+                <span class="text-label" style="color:var(--primary-color); cursor:pointer;" onclick="Nav.to('stats')">АНАЛИЗ</span>
             </div>
             <div id="list-tx-home"></div>
         </div>
@@ -331,12 +333,12 @@
         <!-- >>> ВКЛАДКА 2: ИНВЕСТИЦИИ <<< -->
         <div id="view-invest" class="hidden">
             <h2>Инвестиции</h2>
-            <p class="text-sm" style="margin-bottom:20px;">Рост капитала во времени</p>
+            <p class="text-label" style="text-transform: none; font-size: 14px; opacity: 0.7;">Рост капитала во времени</p>
             
             <div class="card">
-                <div class="flex-row">
+                <div class="flex-between">
                     <span class="text-label">ПРОГНОЗ (1 ГОД)</span>
-                    <span style="color:var(--color-success); font-weight:700" id="val-forecast">+0 ₽</span>
+                    <span style="color:var(--success-color); font-weight:700" id="val-forecast">+0 ₽</span>
                 </div>
                 <div style="height:220px; margin-top:15px;">
                     <canvas id="chart-invest"></canvas>
@@ -351,8 +353,8 @@
             <h2>Аналитика</h2>
             <br>
             <div class="grid-2" style="margin-bottom:20px;">
-                <button class="btn btn-secondary" onclick="UI.setStatMode('expense')">Расходы</button>
-                <button class="btn btn-secondary" onclick="UI.setStatMode('income')">Доходы</button>
+                <button class="btn btn-secondary" onclick="Stats.setMode('expense')">Расходы</button>
+                <button class="btn btn-secondary" onclick="Stats.setMode('income')">Доходы</button>
             </div>
             <div class="card">
                 <div style="height:260px; position:relative;">
@@ -367,22 +369,22 @@
             <h2>Управление</h2>
             <br>
             <div class="card">
-                <div class="flex-row" style="margin-bottom:16px;">
+                <div class="flex-between" style="margin-bottom:16px;">
                     <h3>Счета</h3>
-                    <button class="btn-icon" onclick="UI.openAcc()"><i class="ri-add-line"></i></button>
+                    <button class="btn-icon" onclick="Modal.openAcc()"><i class="ri-add-line"></i></button>
                 </div>
                 <div id="list-acc-manage"></div>
             </div>
 
             <div class="card">
-                <div class="flex-row" style="margin-bottom:16px;">
+                <div class="flex-between" style="margin-bottom:16px;">
                     <h3>Категории</h3>
-                    <button class="btn-icon" onclick="UI.openCat()"><i class="ri-add-line"></i></button>
+                    <button class="btn-icon" onclick="Modal.openCat()"><i class="ri-add-line"></i></button>
                 </div>
                 <div id="list-cat-manage"></div>
             </div>
             
-            <button class="btn btn-secondary" style="margin-top:20px; color:var(--color-danger);" onclick="Core.reset()">
+            <button class="btn btn-secondary" style="margin-top:20px; color:var(--danger-color);" onclick="Core.reset()">
                 <i class="ri-delete-bin-line"></i> Сброс всех данных
             </button>
         </div>
@@ -390,82 +392,11 @@
     </div>
 
     <!-- НИЖНЕЕ МЕНЮ -->
-    <div class="tab-bar">
-        <i class="ri-home-5-fill tab-item active" onclick="UI.nav('home', this)"></i>
-        <i class="ri-line-chart-fill tab-item" onclick="UI.nav('invest', this)"></i>
-        <i class="ri-pie-chart-2-fill tab-item" onclick="UI.nav('stats', this)"></i>
-        <i class="ri-wallet-3-fill tab-item" onclick="UI.nav('wallet', this)"></i>
-    </div>
-
-    <!-- === МОДАЛЬНЫЕ ОКНА === -->
-    <div class="modal-backdrop" id="backdrop" onclick="UI.closeAll()"></div>
-
-    <!-- 1. ТРАНЗАКЦИЯ -->
-    <div class="modal-sheet" id="sheet-tx">
-        <div class="sheet-handle"></div>
-        <div class="flex-row" style="margin-bottom:20px;">
-            <h2 id="tx-title">Расход</h2>
-            <div class="btn-icon" onclick="UI.closeAll()"><i class="ri-close-line"></i></div>
-        </div>
-        
-        <input type="number" id="tx-amount" class="input-money" placeholder="0" inputmode="decimal">
-        
-        <span class="text-label">СЧЕТ</span>
-        <div class="scroll-h" id="tx-accs-list" style="margin-bottom:20px;"></div>
-        
-        <span class="text-label">КАТЕГОРИЯ</span>
-        <div class="grid-4" id="tx-cats-list" style="margin-bottom:20px;"></div>
-        
-        <input type="text" id="tx-note" class="input-std" placeholder="Комментарий">
-        
-        <div class="grid-2">
-            <button class="btn btn-primary" onclick="Actions.saveTx()">Сохранить</button>
-            <button class="btn btn-secondary hidden" id="tx-del-btn" style="color:var(--color-danger)" onclick="Actions.delTx()">Удалить</button>
-        </div>
-    </div>
-
-    <!-- 2. СЧЕТ -->
-    <div class="modal-sheet" id="sheet-acc">
-        <div class="sheet-handle"></div>
-        <div class="flex-row"><h2>Счет</h2> <div class="btn-icon" onclick="UI.closeAll()"><i class="ri-close-line"></i></div></div><br>
-        
-        <input type="text" id="acc-name" class="input-std" placeholder="Название счета">
-        
-        <div class="grid-2" style="margin-bottom:16px;">
-            <button class="btn btn-secondary" id="type-card" onclick="Actions.setType('card')">Карта</button>
-            <button class="btn btn-secondary" id="type-invest" onclick="Actions.setType('invest')">Инвест</button>
-        </div>
-        
-        <div id="acc-invest-opts" class="hidden">
-            <input type="number" id="acc-percent" class="input-std" placeholder="% Доходности">
-        </div>
-        
-        <input type="number" id="acc-bal" class="input-std" placeholder="Баланс">
-        
-        <div class="grid-2">
-            <button class="btn btn-primary" onclick="Actions.saveAcc()">Сохранить</button>
-            <button class="btn btn-secondary" style="color:var(--color-danger)" onclick="Actions.delAcc()">Удалить</button>
-        </div>
-    </div>
-
-    <!-- 3. КАТЕГОРИЯ -->
-    <div class="modal-sheet" id="sheet-cat">
-        <div class="sheet-handle"></div>
-        <div class="flex-row"><h2>Категория</h2> <div class="btn-icon" onclick="UI.closeAll()"><i class="ri-close-line"></i></div></div><br>
-        
-        <input type="text" id="cat-name" class="input-std" placeholder="Название">
-        
-        <div class="grid-2" style="margin-bottom:16px;">
-            <button class="btn btn-secondary" id="ctype-exp" onclick="Actions.setCatType('expense')">Расход</button>
-            <button class="btn btn-secondary" id="ctype-inc" onclick="Actions.setCatType('income')">Доход</button>
-        </div>
-        
-        <div class="grid-4" id="cat-icons-grid" style="margin-bottom:20px;"></div>
-        
-        <div class="grid-2">
-            <button class="btn btn-primary" onclick="Actions.saveCat()">Сохранить</button>
-            <button class="btn btn-secondary" style="color:var(--color-danger)" onclick="Actions.delCat()">Удалить</button>
-        </div>
+    <div class="bottom-nav">
+        <i class="ri-home-5-fill nav-item active" onclick="Nav.to('home', this)"></i>
+        <i class="ri-line-chart-fill nav-item" onclick="Nav.to('invest', this)"></i>
+        <i class="ri-pie-chart-2-fill nav-item" onclick="Nav.to('stats', this)"></i>
+        <i class="ri-wallet-3-fill nav-item" onclick="Nav.to('wallet', this)"></i>
     </div>
     <script>
         /**
