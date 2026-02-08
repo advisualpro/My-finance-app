@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MyCosts Ultimate</title>
+    <!-- Telegram SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Графики -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Иконки -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #F4F6F8;
+            --bg-card: #FFFFFF;
+            --text-main: #111827;
+            --text-sec: #6B7280;
+            --primary: #4F46E5;
+            --success: #059669;
+            --danger: #DC2626;
+            --radius: 20px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0F172A;
+            --bg-card: #1E293B;
+            --text-main: #F9FAFB;
+            --text-sec: #94A3B8;
+            --primary: #6366F1;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            margin: 0; padding-bottom: 110px;
+            transition: background 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+
+        /* Карточки и блоки */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.5px; }
+
+        /* Слайдер счетов */
+        .acc-slider { display: flex; gap: 12px; overflow-x: auto; padding: 5px 20px 15px; margin: 0 -20px; scrollbar-width: none; }
+        .acc-slider::-webkit-scrollbar { display: none; }
+        
+        .acc-card {
+            min-width: 150px;
+            background: var(--bg-card);
+            border-radius: 18px;
+            padding: 16px;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .acc-card.active { border-color: var(--primary); background: rgba(79, 70, 229, 0.08); }
+        .acc-percent {
+            position: absolute; top: 10px; right: 10px;
+            font-size: 10px; background: var(--success); color: white;
+            padding: 2px 6px; border-radius: 6px;
+        }
+
+        /* Прогресс бар цели */
+        .goal-bar { height: 6px; background: var(--bg-body); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .goal-fill { height: 100%; background: var(--primary); width: 0%; transition: 1s; }
+
+        /* Список транзакций */
+        .tx-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .tx-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .tag-waste { font-size: 10px; background: rgba(220, 38, 38, 0.15); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+
+        /* Кнопки и инпуты */
+        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .input-xl { width: 100%; font-size: 36px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text-main); outline: none; padding: 10px 0; }
+        .std-input { width: 100%; padding: 14px; border-radius: 12px; background: var(--bg-body); border: none; color: var(--text-main); outline: none; box-sizing: border-box; margin-bottom: 12px; }
+
+        /* Свитчер (Расход/Доход) */
+        .switch-group { display: flex; background: var(--bg-body); padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+        .switch-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text-sec); font-weight: 600; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .switch-btn.active { background: var(--bg-card); color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .switch-btn.waste.active { color: var(--danger); }
+
+        /* Модальные окна */
+        .modal { position: fixed; inset: 0; background: var(--bg-card); z-index: 1000; padding: 20px; display: none; overflow-y: auto; }
+        .modal.open { display: block; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Навигация */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+            border-radius: 24px; padding: 12px 30px;
+            display: flex; justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 100;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        [data-theme="dark"] .nav-bar { background: rgba(30, 41, 59, 0.85); }
+        .nav-item { background: none; border: none; font-size: 24px; color: var(--text-sec); transition: 0.2s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+
+        .hidden { display: none; }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* Сетка иконок */
+        .icon-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .icon-opt { aspect-ratio: 1; border-radius: 12px; background: var(--bg-body); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+        .icon-opt.sel { background: var(--primary); color: white; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- HEADER -->
+        <header class="flex-between" style="margin-bottom: 20px;">
+            <div>
+                <div class="text-xs" id="user-display">Загрузка ID...</div>
+                <h2 style="font-weight: 800;">Финансы</h2>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="syncData()" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--bg-card); box-shadow: var(--shadow); cursor: pointer;">
+                    <i class="ri-refresh-line" id="sync-icon"></i>
+                </button>
+                <button onclick="toggleTheme()" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--bg-card); box-shadow: var(--shadow); cursor: pointer;">
+                    <i class="ri-moon-line"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- === SCREEN: HOME === -->
+        <div id="screen-home" class="screen">
+            
+            <!-- Баланс -->
+            <div class="card" style="text-align: center; padding: 30px 20px;">
+                <div class="text-xs">Капитал</div>
+                <div style="font-size: 42px; font-weight: 800; margin: 10px 0;" id="total-balance">0 ₽</div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" style="background: var(--bg-body); color: var(--danger); flex: 1;" onclick="openTxModal('expense')">
+                        <i class="ri-arrow-down-line"></i> Расход
+                    </button>
+                    <button class="btn-primary" style="background: var(--text-main); color: var(--bg-card); flex: 1;" onclick="openTxModal('income')">
+                        <i class="ri-arrow-up-line"></i> Доход
+                    </button>
+                </div>
+            </div>
+
+            <!-- Слайдер счетов -->
+            <div class="acc-slider" id="home-acc-list">
+                <!-- JS вставит счета -->
+            </div>
+
+            <!-- График недели -->
+            <div class="card">
+                <div class="flex-between" style="margin-bottom: 10px;">
+                    <h4>Неделя</h4>
+                    <span class="text-xs" id="week-sum">0 ₽</span>
+                </div>
+                <div style="height: 120px;">
+                    <canvas id="weekChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Транзакции -->
+            <div class="flex-between" style="margin: 20px 0 10px;">
+                <div class="text-xs">История</div>
+                <div class="text-xs" style="color: var(--primary); cursor: pointer;" onclick="nav('stats')">Все</div>
+            </div>
+            <div id="home-tx-list" style="padding-bottom: 20px;"></div>
+        </div>
+
+        <!-- === SCREEN: ANALYTICS === -->
+        <div id="screen-stats" class="screen hidden">
+            <h2>Аналитика</h2>
+            
+            <div class="switch-group" style="margin-top: 20px;">
+                <button class="switch-btn active" onclick="filterStats('all', this)">Все траты</button>
+                <button class="switch-btn waste" onclick="filterStats('waste', this)">Только мусор 🗑️</button>
+            </div>
+
+            <div class="card">
+                <div style="height: 250px; position: relative;">
+                    <canvas id="statsDoughnut"></canvas>
+                </div>
+            </div>
+
+            <div id="stats-breakdown"></div>
+        </div>
+
+        <!-- === SCREEN: WALLET (SETTINGS) === -->
+        <div id="screen-wallet" class="screen hidden">
+            <h2>Кошелек</h2>
+            
+            <div class="card" style="margin-top: 20px;">
+                <div class="flex-between"><h4>Счета</h4> <button onclick="openAccModal()" style="color:var(--primary); background:none; border:none; font-weight:700">+ Добавить</button></div>
+                <div id="wallet-acc-list" style="margin-top: 15px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="flex-between"><h4>Категории</h4> <button onclick="openCatModal()" style="color:var(--primary); background:none; border:none; font-weight:700">+ Добавить</button></div>
+                <div id="wallet-cat-list" style="margin-top: 15px;"></div>
+            </div>
+
+            <button onclick="forceSync()" class="btn-primary" style="background: #222; margin-top: 30px;">
+                ☁️ Полная перезапись в облако
+            </button>
+            <div style="text-align:center; font-size:10px; color:#999; margin-top:10px;">
+                Нажми это 1 раз, чтобы создать структуру в таблице
+            </div>
+        </div>
+
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="nav('home', this)"><i class="ri-home-5-fill"></i></button>
+        <button class="nav-item" onclick="nav('stats', this)"><i class="ri-pie-chart-2-fill"></i></button>
+        <button class="nav-item" onclick="nav('wallet', this)"><i class="ri-wallet-3-fill"></i></button>
+    </nav>
+
+    <!-- === MODALS === -->
+
+    <!-- Транзакция -->
+    <div id="modal-tx" class="modal">
+        <div class="flex-between">
+            <h2 id="modal-tx-title">Расход</h2>
+            <i class="ri-close-circle-fill" style="font-size: 28px; opacity: 0.5;" onclick="closeModals()"></i>
+        </div>
+
+        <input type="number" id="inp-tx-amount" class="input-xl" placeholder="0" inputmode="decimal">
+
+        <div class="text-xs" style="margin-bottom: 8px;">Счет</div>
+        <div class="acc-slider" id="modal-tx-accs" style="margin: 0 -20px 15px;"></div>
+
+        <div class="text-xs" style="margin-bottom: 8px;">Категория</div>
+        <div class="icon-grid" id="modal-tx-cats"></div>
+
+        <!-- Тоггл для Хотелок (виден только при расходе) -->
+        <div id="waste-block" class="switch-group" style="margin-top: 20px;">
+            <button class="switch-btn active" onclick="setWaste(false)" id="btn-waste-no">Нужное ✅</button>
+            <button class="switch-btn waste" onclick="setWaste(true)" id="btn-waste-yes">Хотелка 🗑️</button>
+        </div>
+
+        <input type="text" id="inp-tx-note" class="std-input" placeholder="Комментарий" style="margin-top: 15px;">
+        <input type="date" id="inp-tx-date" class="std-input">
+        
+        <button class="btn-primary" onclick="saveTransaction()">Сохранить</button>
+    </div>
+
+    <!-- Новый Счет -->
+    <div id="modal-acc" class="modal">
+        <div class="flex-between"><h2>Новый счет</h2> <i class="ri-close-circle-fill" onclick="closeModals()" style="font-size:28px"></i></div>
+        
+        <input type="text" id="inp-acc-name" class="std-input" placeholder="Название (напр. Вклад)" style="margin-top:20px;">
+        
+        <div class="switch-group">
+            <button class="switch-btn active" onclick="setAccType('card')" id="atype-card">Карта</button>
+            <button class="switch-btn" onclick="setAccType('deposit')" id="atype-dep">Вклад/Цель</button>
+        </div>
+
+        <div id="deposit-fields" class="hidden">
+            <input type="number" id="inp-acc-goal" class="std-input" placeholder="Цель (сумма)">
+            <input type="number" id="inp-acc-percent" class="std-input" placeholder="% годовых">
+        </div>
+
+        <input type="number" id="inp-acc-start" class="std-input" placeholder="Текущий баланс">
+        
+        <button class="btn-primary" onclick="saveAccount()">Создать</button>
+    </div>
+
+    <!-- Новая Категория -->
+    <div id="modal-cat" class="modal">
+        <div class="flex-between"><h2>Новая категория</h2> <i class="ri-close-circle-fill" onclick="closeModals()" style="font-size:28px"></i></div>
+        
+        <input type="text" id="inp-cat-name" class="std-input" placeholder="Название" style="margin-top:20px;">
+        
+        <div class="switch-group">
+            <button class="switch-btn active" onclick="setCatType('expense')" id="ctype-exp">Расход</button>
+            <button class="switch-btn" onclick="setCatType('income')" id="ctype-inc">Доход</button>
+        </div>
+
+        <div class="text-xs" style="margin: 10px 0;">Иконка</div>
+        <div class="icon-grid" id="cat-icons"></div>
+
+        <button class="btn-primary" onclick="saveCategory()" style="margin-top: 20px;">Создать</button>
+    </div>
+
+    <!-- === LOGIC === -->
+    <script>
+        // ТВОЯ ССЫЛКА НА GOOGLE SCRIPT (Правильная)
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_ES9U2-4VYmPhMLbDtNNv_ESnbUEI9nlw0euEHsxZ6eJqu340_LpF_A1pSxyUvRxG/exec';
+
+        // Инициализация
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Определение ID пользователя
+        let USER_ID = localStorage.getItem('mc_uid');
+        if (!USER_ID) {
+            // Если открыто в Телеграм
+            if (tg.initDataUnsafe?.user?.id) {
+                USER_ID = 'tg_' + tg.initDataUnsafe.user.id;
+            } else {
+                // Если в браузере - случайный ID
+                USER_ID = 'user_' + Date.now().toString().slice(-6);
+            }
+            localStorage.setItem('mc_uid', USER_ID);
+        }
+        document.getElementById('user-display').innerText = 'ID: ' + USER_ID;
+
+        // Данные по умолчанию
+        const DEFAULT_DB = {
+            accounts: [
+                { id: 'a1', name: 'Карта', type: 'card', balance: 0, start: 0, goal: 0, percent: 0, lastCalc: Date.now() }
+            ],
+            categories: [
+                { id: 'c1', name: 'Еда', type: 'expense', icon: 'ri-restaurant-line', color: '#F59E0B' },
+                { id: 'c2', name: 'Транспорт', type: 'expense', icon: 'ri-taxi-line', color: '#3B82F6' },
+                { id: 'c3', name: 'Зарплата', type: 'income', icon: 'ri-briefcase-line', color: '#10B981' }
+            ],
+            transactions: []
+        };
+
+        let db = JSON.parse(localStorage.getItem('mc_db')) || DEFAULT_DB;
+
+        // --- CORE FUNCTIONS ---
+
+        function saveLocal() {
+            localStorage.setItem('mc_db', JSON.stringify(db));
+            renderHome();
+        }
+
+        // Синхронизация (Загрузка)
+        async function syncData() {
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('spin');
+            try {
+                const res = await fetch(`${API_URL}?action=load&user_id=${USER_ID}`);
+                const json = await res.json();
+                if (json.status === 'success') {
+                    // Если в облаке есть данные - берем их
+                    if(json.data.accounts.length > 0) db.accounts = json.data.accounts;
+                    if(json.data.categories.length > 0) db.categories = json.data.categories;
+                    if(json.data.transactions.length > 0) db.transactions = json.data.transactions;
+                    
+                    calcInterest(); // Пересчитать проценты
+                    recalcBalances(); // Пересчитать балансы
+                    saveLocal();
+                    console.log('Sync complete');
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                icon.classList.remove('spin');
+            }
+        }
+
+        // Отправка одной транзакции (Фон)
+        async function pushTx(tx) {
+            try {
+                fetch(API_URL + '?action=add_tx', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ ...tx, user_id: USER_ID })
+                });
+            } catch(e) {}
+        }
+
+        // Полная перезапись (Force Sync)
+        async function forceSync() {
+            if(!confirm('Заменить данные в облаке текущими?')) return;
+            const btn = document.querySelector('#screen-wallet .btn-primary');
+            btn.innerText = '⏳ Загрузка...';
+            try {
+                await fetch(API_URL + '?action=sync_all', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        user_id: USER_ID,
+                        accounts: db.accounts,
+                        categories: db.categories,
+                        transactions: db.transactions
+                    })
+                });
+                alert('Готово! Данные в таблице обновлены.');
+            } catch(e) { alert('Ошибка сети'); }
+            btn.innerText = '☁️ Полная перезапись в облако';
+        }
+
+        // --- LOGIC ---
+
+        function calcInterest() {
+            // Начисление процентов по вкладам
+            const now = Date.now();
+            let changed = false;
+            db.accounts.forEach(acc => {
+                if (acc.type === 'deposit' && acc.percent > 0) {
+                    const last = acc.lastCalc || now;
+                    const days = (now - last) / (1000 * 60 * 60 * 24);
+                    if (days >= 1) {
+                        const profit = acc.balance * (acc.percent / 100 / 365) * days;
+                        if (profit > 0.1) {
+                            db.transactions.push({
+                                id: 'tx_int_' + Date.now(),
+                                date: new Date().toISOString(),
+                                amount: profit,
+                                type: 'income',
+                                accountId: acc.id,
+                                categoryId: 'sys_int',
+                                comment: 'Проценты',
+                                isWaste: false
+                            });
+                            acc.lastCalc = now;
+                            changed = true;
+                        }
+                    }
+                }
+            });
+            if (changed) recalcBalances();
+        }
+
+        function recalcBalances() {
+            db.accounts.forEach(a => a.balance = parseFloat(a.start || 0));
+            db.transactions.forEach(t => {
+                const acc = db.accounts.find(a => a.id == t.accountId);
+                if (acc) {
+                    if (t.type === 'income') acc.balance += parseFloat(t.amount);
+                    else acc.balance -= parseFloat(t.amount);
+                }
+            });
+            saveLocal();
+        }
+
+        // --- RENDER ---
+
+        function renderHome() {
+            // Total
+            const total = db.accounts.reduce((s, a) => s + a.balance, 0);
+            document.getElementById('total-balance').innerText = Math.floor(total).toLocaleString() + ' ₽';
+
+            // Accounts
+            const accList = document.getElementById('home-acc-list');
+            accList.innerHTML = db.accounts.map(a => {
+                let goalHtml = '';
+                if(a.type === 'deposit' && a.goal > 0) {
+                    const pct = Math.min(100, (a.balance / a.goal) * 100);
+                    goalHtml = `<div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>`;
+                }
+                return `
+                <div class="acc-card">
+                    ${a.percent ? `<div class="acc-percent">+${a.percent}%</div>` : ''}
+                    <div style="font-weight:700">${a.name}</div>
+                    <div style="font-size:18px; color:var(--primary); font-weight:800; margin:5px 0;">${Math.floor(a.balance).toLocaleString()}</div>
+                    <div class="text-xs" style="opacity:0.6">${a.type === 'card' ? 'Карта' : 'Вклад'}</div>
+                    ${goalHtml}
+                </div>`;
+            }).join('');
+
+            // Transactions
+            const txList = document.getElementById('home-tx-list');
+            const sorted = db.transactions.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+            
+            txList.innerHTML = sorted.map(t => {
+                const c = db.categories.find(x => x.id == t.categoryId) || {name:'?', color:'#ccc', icon:'ri-question-line'};
+                return `
+                <div class="tx-item">
+                    <div class="tx-icon" style="background:${c.color}20; color:${c.color}"><i class="${c.icon}"></i></div>
+                    <div style="flex:1">
+                        <div style="font-weight:600; font-size:14px; display:flex; align-items:center;">
+                            ${c.name} ${t.isWaste ? '<span class="tag-waste">Мусор</span>' : ''}
+                        </div>
+                        <div class="text-xs" style="text-transform:none; font-weight:400; margin-top:2px;">${new Date(t.date).toLocaleDateString()} • ${t.comment || ''}</div>
+                    </div>
+                    <div style="font-weight:700; color:${t.type=='expense'?'var(--text-main)':'var(--success)'}">
+                        ${t.type=='expense'?'-':'+'}${Math.floor(t.amount)}
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Week Chart
+            renderWeekChart();
+            
+            // Wallet Lists
+            document.getElementById('wallet-acc-list').innerHTML = db.accounts.map(a => `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #eee"><b>${a.name}</b> <span>${Math.floor(a.balance)}</span></div>`).join('');
+            document.getElementById('wallet-cat-list').innerHTML = db.categories.map(c => `<div style="display:inline-block; padding:5px 10px; background:#eee; border-radius:8px; margin:2px; font-size:12px;">${c.name}</div>`).join('');
+        }
+
+        // --- CHARTS ---
+        let chartInst = null;
+        function renderWeekChart() {
+            const ctx = document.getElementById('weekChart');
+            const days = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+            const data = [0,0,0,0,0,0,0];
+            const now = new Date();
+            let sum = 0;
+            
+            db.transactions.forEach(t => {
+                if(t.type === 'expense') {
+                    const d = new Date(t.date);
+                    if(Math.abs(now - d) < 7*24*60*60*1000) {
+                        data[d.getDay()] += t.amount;
+                        sum += t.amount;
+                    }
+                }
+            });
+            document.getElementById('week-sum').innerText = sum.toLocaleString() + ' ₽';
+
+            if(window.weekChartObj) window.weekChartObj.destroy();
+            window.weekChartObj = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: days, datasets: [{ data, backgroundColor: '#4F46E5', borderRadius: 4 }] },
+                options: { maintainAspectRatio:false, scales: { x:{grid:{display:false}}, y:{display:false} }, plugins:{legend:{display:false}} }
+            });
+        }
+
+        function renderStats(filter = 'all') {
+            const ctx = document.getElementById('statsDoughnut');
+            let txs = db.transactions.filter(t => t.type === 'expense');
+            if(filter === 'waste') txs = txs.filter(t => t.isWaste);
+
+            const cats = {};
+            txs.forEach(t => {
+                if(!cats[t.categoryId]) cats[t.categoryId] = 0;
+                cats[t.categoryId] += t.amount;
+            });
+
+            if(window.statsChartObj) window.statsChartObj.destroy();
+            window.statsChartObj = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.name),
+                    datasets: [{ 
+                        data: Object.values(cats), 
+                        backgroundColor: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.color),
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio:false, plugins:{legend:{position:'right'}} }
+            });
+            
+            // Breakdown
+            document.getElementById('stats-breakdown').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([id, val]) => {
+                const c = db.categories.find(x=>x.id==id);
+                return `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #eee;">
+                    <div style="display:flex; gap:10px; align-items:center"><div style="width:10px; height:10px; border-radius:50%; background:${c.color}"></div> ${c.name}</div>
+                    <b>${val.toLocaleString()}</b>
+                </div>`;
+            }).join('');
+        }
+
+        function filterStats(type, btn) {
+            document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderStats(type);
+        }
+
+        // --- ACTIONS ---
+        let curTxType = 'expense';
+        let curTxAcc = '';
+        let curTxCat = '';
+        let curTxWaste = false;
+
+        function openTxModal(type) {
+            curTxType = type;
+            document.getElementById('modal-tx-title').innerText = type==='expense'?'Расход':'Доход';
+            document.getElementById('modal-tx').classList.add('open');
+            document.getElementById('waste-block').style.display = type==='expense'?'flex':'none';
+            document.getElementById('inp-tx-date').valueAsDate = new Date();
+            document.getElementById('inp-tx-amount').value = '';
+            
+            // Render Accs
+            curTxAcc = db.accounts[0]?.id;
+            const accCont = document.getElementById('modal-tx-accs');
+            accCont.innerHTML = db.accounts.map(a => `
+                <div class="acc-card" onclick="curTxAcc='${a.id}'; document.querySelectorAll('.acc-card').forEach(x=>x.classList.remove('active')); this.classList.add('active')">
+                    <b>${a.name}</b><br>${Math.floor(a.balance)}
+                </div>`).join('');
+            accCont.firstChild?.classList.add('active');
+
+            // Render Cats
+            const catCont = document.getElementById('modal-tx-cats');
+            catCont.innerHTML = db.categories.filter(c=>c.type==type).map(c => `
+                <div class="icon-opt" style="color:${c.color}" onclick="curTxCat='${c.id}'; document.querySelectorAll('.icon-opt').forEach(x=>x.classList.remove('sel')); this.classList.add('sel')">
+                    <i class="${c.icon}"></i>
+                </div>`).join('');
+        }
+
+        function setWaste(isW) {
+            curTxWaste = isW;
+            document.getElementById('btn-waste-no').classList.toggle('active', !isW);
+            document.getElementById('btn-waste-yes').classList.toggle('active', isW);
+        }
+
+        function saveTransaction() {
+            const amt = document.getElementById('inp-tx-amount').value;
+            if(!amt || !curTxAcc || !curTxCat) return alert('Введите сумму и категорию');
+            
+            const tx = {
+                id: 'tx_' + Date.now(),
+                date: document.getElementById('inp-tx-date').value || new Date().toISOString(),
+                amount: parseFloat(amt),
+                type: curTxType,
+                accountId: curTxAcc,
+                categoryId: curTxCat,
+                comment: document.getElementById('inp-tx-note').value,
+                isWaste: (curTxType === 'expense' && curTxWaste)
+            };
+            
+            db.transactions.push(tx);
+            recalcBalances(); // Local update
+            pushTx(tx); // Cloud update
+            closeModals();
+        }
+
+        // --- ACCOUNT / CAT MODALS ---
+        let newAccType = 'card';
+        let newCatType = 'expense';
+        let newCatIcon = 'ri-star-line';
+
+        function openAccModal() { document.getElementById('modal-acc').classList.add('open'); }
+        function openCatModal() { 
+            document.getElementById('modal-cat').classList.add('open');
+            const icons = ['ri-star-line', 'ri-home-line', 'ri-car-line', 'ri-shopping-cart-line', 'ri-gift-line', 'ri-heart-line', 'ri-gamepad-line', 'ri-book-line', 'ri-scissors-line', 'ri-beer-line'];
+            document.getElementById('cat-icons').innerHTML = icons.map(i => `<div class="icon-opt" onclick="newCatIcon='${i}'; document.querySelectorAll('#cat-icons .icon-opt').forEach(x=>x.classList.remove('sel')); this.classList.add('sel')"><i class="${i}"></i></div>`).join('');
+        }
+
+        function setAccType(t) {
+            newAccType = t;
+            document.getElementById('atype-card').classList.toggle('active', t=='card');
+            document.getElementById('atype-dep').classList.toggle('active', t=='deposit');
+            document.getElementById('deposit-fields').classList.toggle('hidden', t!='deposit');
+        }
+        function setCatType(t) {
+            newCatType = t;
+            document.getElementById('ctype-exp').classList.toggle('active', t=='expense');
+            document.getElementById('ctype-inc').classList.toggle('active', t=='income');
+        }
+
+        function saveAccount() {
+            const name = document.getElementById('inp-acc-name').value;
+            if(!name) return;
+            db.accounts.push({
+                id: 'acc_'+Date.now(),
+                name,
+                type: newAccType,
+                balance: parseFloat(document.getElementById('inp-acc-start').value)||0,
+                start: parseFloat(document.getElementById('inp-acc-start').value)||0,
+                goal: parseFloat(document.getElementById('inp-acc-goal').value)||0,
+                percent: parseFloat(document.getElementById('inp-acc-percent').value)||0,
+                lastCalc: Date.now()
+            });
+            saveLocal(); closeModals();
+        }
+
+        function saveCategory() {
+            const name = document.getElementById('inp-acc-name').value; // Bug fix: use cat input
+            const realName = document.getElementById('inp-cat-name').value;
+            if(!realName) return;
+            const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#EC4899'];
+            db.categories.push({
+                id: 'cat_'+Date.now(),
+                name: realName,
+                type: newCatType,
+                icon: newCatIcon,
+                color: colors[Math.floor(Math.random()*colors.length)]
+            });
+            saveLocal(); closeModals();
+        }
+
+        // --- UTILS ---
+        function nav(scr, btn) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('screen-'+scr).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(scr==='stats') renderStats();
+        }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); }
+        function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='dark'?'light':'dark'); }
+
+        // Start
+        recalcBalances();
+        syncData();
+
+    </script>
+</body>
+</html>
