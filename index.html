@@ -3,422 +3,856 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyCosts Stable</title>
+    <title>MyCosts Onyx</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg: #F3F4F6; --card: #FFFFFF; --text: #111827; --text-sec: #6B7280;
-            --primary: #4F46E5; --primary-soft: rgba(79, 70, 229, 0.1);
-            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
-            --radius: 24px; --shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
-            --font: 'Inter', sans-serif;
-        }
-        [data-theme="dark"] {
-            --bg: #0F172A; --card: #1E293B; --text: #F9FAFB; --text-sec: #94A3B8;
-            --primary: #818CF8; --primary-soft: rgba(129, 140, 248, 0.15);
+            /* ONYX THEME PALETTE */
+            --bg-body: #09090b;
+            --bg-card: #18181b;
+            --bg-input: #27272a;
+            --text-main: #ffffff;
+            --text-sec: #a1a1aa;
+            
+            --primary: #6366f1; /* Indigo */
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            
+            --radius: 20px;
+            --font: 'Manrope', sans-serif;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding-bottom: 120px; user-select: none; overflow-x: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
-        .container { padding: 20px; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
-        
-        /* HEADER & STATUS */
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: var(--bg); transition: 0.3s; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
-        .status-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
-        .status-dot.online { background: var(--success); }
-        .status-dot.offline { background: var(--text-sec); }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font);
+            margin: 0; padding: 0;
+            padding-bottom: 120px; /* Space for nav */
+            overflow-x: hidden;
+        }
 
-        /* CARDS & UI */
-        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); position: relative; transition: transform 0.1s; }
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin: 0 0 10px 0; }
+        h2 { font-size: 24px; font-weight: 700; margin: 0 0 15px 0; }
+        h3 { font-size: 18px; font-weight: 700; margin: 0; }
+        .text-sm { font-size: 13px; color: var(--text-sec); }
+        .text-mono { font-family: monospace; letter-spacing: -0.5px; }
+
+        /* CARDS */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.8px; margin-bottom: 8px; display: block; }
-        
-        /* INPUTS & BUTTONS */
-        .money-input { width: 100%; font-size: 42px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; }
-        .std-input { width: 100%; padding: 18px; border-radius: 18px; background: var(--bg); border: 2px solid transparent; color: var(--text); font-size: 16px; margin-bottom: 15px; transition: 0.3s; }
-        .std-input:focus { background: var(--card); border-color: var(--primary); }
-        .btn-main { width: 100%; padding: 18px; border-radius: 20px; background: var(--primary); color: white; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
-        .btn-main:active { transform: scale(0.96); }
-        
-        /* NAVIGATION */
-        .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; margin: auto; max-width: 440px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-radius: 30px; padding: 10px 25px; display: flex; justify-content: space-between; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.2); z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
-        [data-theme="dark"] .nav-bar { background: rgba(30, 41, 59, 0.85); border-color: rgba(255,255,255,0.05); }
-        .nav-item { border: none; background: none; color: var(--text-sec); font-size: 26px; padding: 10px; position: relative; transition: 0.3s; }
-        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
-        .nav-item.active::after { content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--primary); }
+        .flex-col { display: flex; flex-direction: column; gap: 5px; }
 
-        /* SCREENS */
-        .screen { display: none; animation: fadeUp 0.3s ease; }
-        .screen.active { display: block; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        /* VISUAL FEEDBACK (Highlighting) */
+        .interactive { transition: transform 0.1s, background 0.2s, border-color 0.2s; cursor: pointer; }
+        .interactive:active { transform: scale(0.96); opacity: 0.8; }
+        .selected-border { border: 2px solid var(--primary) !important; background: rgba(99, 102, 241, 0.1) !important; }
+
+        /* BUTTONS */
+        .btn-main {
+            width: 100%; padding: 18px; border-radius: 18px;
+            background: var(--primary); color: white; border: none;
+            font-size: 16px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            transition: 0.2s;
+        }
+        .btn-main:active { transform: scale(0.98); }
+        
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .btn-danger:active { background: rgba(239, 68, 68, 0.3); }
+
+        /* INPUTS */
+        .input-lg {
+            width: 100%; background: transparent; border: none;
+            font-size: 42px; font-weight: 800; color: white;
+            text-align: center; padding: 20px 0;
+        }
+        .input-std {
+            width: 100%; background: var(--bg-input); border: 1px solid transparent;
+            padding: 16px; border-radius: 16px; color: white; font-size: 16px;
+            margin-bottom: 12px; transition: 0.2s;
+        }
+        .input-std:focus { border-color: var(--primary); background: #000; }
+
+        /* PROGRESS BARS (Cashflow & Budget) */
+        .progress-track { width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; transition: width 0.5s ease; border-radius: 4px; }
+        .fill-green { background: var(--success); }
+        .fill-red { background: var(--danger); }
+        .fill-primary { background: var(--primary); }
+
+        /* NAVIGATION */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: rgba(30, 30, 35, 0.9); backdrop-filter: blur(15px);
+            border-radius: 24px; padding: 12px 20px;
+            display: flex; justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            z-index: 100; max-width: 460px; margin: 0 auto 20px;
+        }
+        .nav-item {
+            background: none; border: none; color: var(--text-sec);
+            font-size: 24px; padding: 8px 16px; border-radius: 12px;
+            transition: 0.2s;
+        }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
 
         /* MODALS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999;
+            opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px);
+        }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 30px 30px 0 0; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; max-height: 90vh; overflow-y: auto; }
-        .sheet.open { transform: translateY(0); }
-        .sheet-handle { width: 40px; height: 5px; background: var(--text-sec); opacity: 0.2; border-radius: 10px; margin: 0 auto 20px; }
-
-        /* ONBOARDING */
-        #onboarding-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; padding: 30px; display: flex; flex-direction: column; justify-content: center; transition: opacity 0.5s; opacity: 1; }
-        #onboarding-screen.closed { opacity: 0; pointer-events: none; }
-        .step { display: none; text-align: center; }
-        .step.active { display: block; animation: fadeUp 0.4s; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #1c1c1f; border-radius: 24px 24px 0 0;
+            padding: 24px; transform: translateY(100%); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 1000; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .bottom-sheet.open { transform: translateY(0); }
 
         /* UTILS */
-        .h-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; margin: 0 -5px; padding: 0 5px; scrollbar-width: none; }
-        .acc-chip { min-width: 140px; background: var(--card); border: 1px solid rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; position: relative; flex-shrink: 0; }
-        .acc-chip.active { border-color: var(--primary); background: var(--primary-soft); }
-        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .icon-box { aspect-ratio: 1; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; transition: 0.2s; }
-        .icon-box.selected { background: var(--primary); color: white; transform: scale(1.1); }
-        .sw-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-sec); font-weight: 600; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .sw-btn.active { background: var(--card); color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .hidden { display: none !important; }
+        .text-gradient { background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* CATEGORY GRID */
+        .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .cat-item { 
+            aspect-ratio: 1; background: var(--bg-input); border-radius: 16px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px solid transparent; gap: 5px;
+        }
+        .cat-emoji { font-size: 24px; }
+        .cat-name { font-size: 10px; text-align: center; color: var(--text-sec); }
+
+        /* LOADERS */
+        .loader-overlay { position: fixed; inset: 0; background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: 0.5s; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite; margin-bottom: 20px;}
+        @keyframes spin { to { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
 
-    <!-- ONBOARDING -->
-    <div id="onboarding-screen" class="hidden">
-        <div id="step-1" class="step active">
-            <div style="font-size: 60px; margin-bottom: 20px;">👋</div>
-            <h1>Давай знакомиться!</h1>
-            <p class="text-sm" style="margin-bottom: 40px;">Как тебя зовут?</p>
-            <input type="text" id="ob-name" class="std-input" placeholder="Твое имя" style="text-align:center">
-            <button class="btn-main" onclick="nextStep(2)">Далее</button>
-        </div>
-        <div id="step-2" class="step">
-            <h1>Выбери валюту</h1>
-            <div class="grid-5" style="margin: 40px 0;">
-                <div class="icon-box" onclick="selectCurrency('₽', this)">₽</div>
-                <div class="icon-box" onclick="selectCurrency('$', this)">$</div>
-                <div class="icon-box" onclick="selectCurrency('€', this)">€</div>
-                <div class="icon-box" onclick="selectCurrency('₸', this)">₸</div>
-                <div class="icon-box" onclick="selectCurrency('Br', this)">Br</div>
-            </div>
-            <button class="btn-main" onclick="finishOnboarding()">Начать</button>
-        </div>
+    <!-- LOADER -->
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div style="font-weight:700">Синхронизация...</div>
+        <div class="text-sm" style="margin-top:10px; opacity:0.5">MyCosts Onyx</div>
     </div>
 
-    <!-- APP -->
-    <div id="app" class="container">
+    <!-- ONBOARDING (Только для новых) -->
+    <div id="screen-onboarding" class="screen hidden container" style="text-align:center; padding-top: 100px;">
+        <h1>Добро пожаловать</h1>
+        <p class="text-sm" style="margin-bottom: 40px;">Твой финансовый центр</p>
+        
+        <input type="text" id="setup-name" class="input-std" placeholder="Твое имя" style="text-align:center">
+        <input type="number" id="setup-limit" class="input-std" placeholder="Лимит трат в месяц (₽)" style="text-align:center">
+        
+        <button class="btn-main interactive" onclick="completeSetup()">Начать использование</button>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="screen-app" class="screen hidden container">
+        
         <!-- HEADER -->
-        <header class="flex-between" style="margin-bottom: 24px; padding-top: 10px;">
-            <div class="status-badge" onclick="syncData()">
-                <div class="status-dot" id="sync-dot"></div>
-                <span id="sync-text">Готов</span>
+        <header class="flex-between" style="margin-bottom: 20px;">
+            <div>
+                <div class="text-sm" id="user-greeting">Привет</div>
+                <div class="text-xs text-mono" style="opacity:0.5" id="sync-status">SYNC: OK</div>
             </div>
-            <div class="flex-between" style="gap:10px">
-                <div style="text-align: right;">
-                    <div style="font-weight: 700; font-size: 18px;" id="header-name">...</div>
-                    <div class="text-xs" id="header-currency" style="margin:0">RUB</div>
-                </div>
-                <div style="width: 40px; height: 40px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow);" onclick="toggleTheme()">
-                    <i class="ri-moon-line"></i>
-                </div>
-            </div>
+            <button class="interactive" onclick="forceSync()" style="background:var(--bg-input); border:none; width:40px; height:40px; border-radius:50%; color:white;">
+                <i class="ri-refresh-line"></i>
+            </button>
         </header>
 
-        <!-- HOME -->
-        <div id="scr-home" class="screen active">
-            <div class="card" style="text-align: center; padding: 30px 20px;">
-                <div class="text-xs">Баланс</div>
-                <div style="font-size: 42px; font-weight: 900; margin: 10px 0; letter-spacing: -1px;" id="total-bal">0</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px;">
-                    <button class="btn-main" style="background: var(--bg); color: var(--danger); box-shadow: none;" onclick="openTxModal('expense')"><i class="ri-arrow-down-circle-fill"></i> Расход</button>
-                    <button class="btn-main" style="background: var(--bg); color: var(--success); box-shadow: none;" onclick="openTxModal('income')"><i class="ri-arrow-up-circle-fill"></i> Доход</button>
+        <!-- DASHBOARD (Cashflow & Budget) -->
+        <div id="view-home" class="view">
+            
+            <!-- Cashflow Card -->
+            <div class="card">
+                <div class="flex-between">
+                    <span class="text-sm">Финансовая свобода</span>
+                    <span class="text-sm text-mono" id="cf-percent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-success" id="cf-bar" style="width: 0%"></div>
+                </div>
+                <div class="flex-between" style="margin-top: 15px;">
+                    <div>
+                        <div class="text-xs">ПАССИВНЫЙ</div>
+                        <div class="text-mono" style="color:var(--success)" id="cf-passive">0 ₽</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="text-xs">РАСХОДЫ</div>
+                        <div class="text-mono" style="color:var(--danger)" id="cf-expense">0 ₽</div>
+                    </div>
                 </div>
             </div>
-            <div class="flex-between"><h4>Счета</h4> <span class="text-xs" onclick="nav('wallet')">ВСЕ</span></div>
-            <div class="h-scroll" id="home-accs" style="margin-bottom: 20px;"></div>
-            <div class="flex-between"><h4>История</h4> <span class="text-xs" onclick="nav('stats')">АНАЛИЗ</span></div>
-            <div id="home-txs"></div>
+
+            <!-- Budget Card -->
+            <div class="card">
+                <div class="flex-between">
+                    <span class="text-sm">Лимит на месяц</span>
+                    <span class="text-sm" id="budget-left">Осталось: 0 ₽</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="budget-bar" style="width: 0%; background: var(--primary);"></div>
+                </div>
+                <div style="margin-top: 5px; text-align: right; font-size: 10px; color: var(--text-sec);" id="budget-total">из 100 000 ₽</div>
+            </div>
+
+            <!-- Main Actions -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <button class="btn-main interactive" style="background: var(--bg-input); color: var(--danger);" onclick="openTxModal('expense')">
+                    <i class="ri-arrow-down-line"></i> Расход
+                </button>
+                <button class="btn-main interactive" style="background: var(--bg-input); color: var(--success);" onclick="openTxModal('income')">
+                    <i class="ri-arrow-up-line"></i> Доход
+                </button>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="flex-between" style="margin-bottom: 10px;">
+                <h3>История</h3>
+                <span class="text-sm interactive" onclick="switchView('analytics')">Все</span>
+            </div>
+            <div id="tx-list"></div>
         </div>
 
-        <!-- INVEST -->
-        <div id="scr-invest" class="screen">
+        <!-- ANALYTICS VIEW -->
+        <div id="view-analytics" class="view hidden">
+            <h2>Аналитика</h2>
+            <div class="card">
+                <canvas id="chart-main"></canvas>
+            </div>
+            <div id="analytics-list"></div>
+        </div>
+
+        <!-- INVEST VIEW -->
+        <div id="view-invest" class="view hidden">
             <h2>Инвестиции</h2>
-            <p class="text-sm">Рост капитала</p><br>
-            <div class="card"><div style="height: 200px;"><canvas id="chart-invest"></canvas></div></div>
-            <div id="invest-list"></div>
+            <p class="text-sm" style="margin-bottom:20px;">Калькулятор сложного процента</p>
+            
+            <div class="card">
+                <label class="text-xs">Сумма вложений</label>
+                <input type="number" id="calc-amount" class="input-std" placeholder="0">
+                
+                <label class="text-xs">Ожидаемый % годовых</label>
+                <input type="number" id="calc-percent" class="input-std" placeholder="15">
+                
+                <div style="background:rgba(16, 185, 129, 0.1); padding:15px; border-radius:12px; margin-top:10px;">
+                    <div class="flex-between">
+                        <span>Через год:</span>
+                        <b id="calc-res-year" style="color:var(--success)">0 ₽</b>
+                    </div>
+                    <div class="flex-between" style="margin-top:10px;">
+                        <span>Пассивный/мес:</span>
+                        <b id="calc-res-month" style="color:var(--success)">0 ₽</b>
+                    </div>
+                </div>
+                <button class="btn-main interactive" style="margin-top:15px;" onclick="runCalc()">Рассчитать</button>
+            </div>
+
+            <h3>Мои Активы</h3>
+            <div id="invest-accounts-list" style="margin-top:10px;"></div>
         </div>
 
-        <!-- STATS -->
-        <div id="scr-stats" class="screen">
-            <h2>Аналитика</h2><br>
-            <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
-                <button class="sw-btn active" onclick="setStatMode('expense', this)">Расходы</button>
-                <button class="sw-btn" onclick="setStatMode('income', this)">Доходы</button>
+        <!-- WALLET VIEW (Settings) -->
+        <div id="view-wallet" class="view hidden">
+            <h2>Кошелек</h2>
+            
+            <div class="card">
+                <div class="flex-between">
+                    <h3>Счета</h3>
+                    <button class="text-sm interactive" style="background:none; border:none; color:var(--primary);" onclick="openAccountModal()">+ Добавить</button>
+                </div>
+                <div id="settings-acc-list" style="margin-top:15px;"></div>
             </div>
-            <div class="card"><div style="height: 250px; position: relative;"><canvas id="chart-pie"></canvas></div></div>
-            <div id="stats-list"></div>
+
+            <div class="card">
+                <div class="flex-between">
+                    <h3>Категории</h3>
+                    <button class="text-sm interactive" style="background:none; border:none; color:var(--primary);" onclick="openCatModal()">+ Добавить</button>
+                </div>
+                <div id="settings-cat-list" style="margin-top:15px;"></div>
+            </div>
+
+            <div class="card">
+                <h3>Настройки</h3>
+                <label class="text-xs" style="margin-top:10px;">Лимит трат (Бюджет)</label>
+                <input type="number" id="settings-limit" class="input-std" onchange="saveSettingsLimit()">
+            </div>
         </div>
 
-        <!-- WALLET -->
-        <div id="scr-wallet" class="screen">
-            <h2>Кошелек</h2><br>
-            <div class="card">
-                <div class="flex-between"><h4>Счета</h4> <button class="btn-ghost" onclick="openAccModal()">+ Добавить</button></div>
-                <div id="wallet-accs"></div>
-            </div>
-            <div class="card">
-                <div class="flex-between"><h4>Категории</h4> <button class="btn-ghost" onclick="openCatModal()">+ Добавить</button></div>
-                <div id="wallet-cats"></div>
-            </div>
-            <button class="btn-main" style="background: #333; margin-top: 20px;" onclick="forceSync()"><i class="ri-refresh-line"></i> Сброс кэша</button>
-        </div>
     </div>
 
-    <!-- NAV -->
+    <!-- NAVBAR -->
     <nav class="nav-bar">
-        <button class="nav-item active" onclick="nav('home', this)"><i class="ri-home-4-fill"></i></button>
-        <button class="nav-item" onclick="nav('invest', this)"><i class="ri-line-chart-fill"></i></button>
-        <button class="nav-item" onclick="nav('stats', this)"><i class="ri-pie-chart-2-fill"></i></button>
-        <button class="nav-item" onclick="nav('wallet', this)"><i class="ri-wallet-3-fill"></i></button>
+        <button class="nav-item active interactive" onclick="switchView('home')"><i class="ri-home-5-fill"></i></button>
+        <button class="nav-item interactive" onclick="switchView('analytics')"><i class="ri-pie-chart-2-fill"></i></button>
+        <button class="nav-item interactive" onclick="switchView('invest')"><i class="ri-line-chart-fill"></i></button>
+        <button class="nav-item interactive" onclick="switchView('wallet')"><i class="ri-wallet-3-fill"></i></button>
     </nav>
 
-    <!-- MODALS -->
-    <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
-    
-    <div id="sheet-tx" class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="flex-between"><h2 id="mtx-title">Расход</h2> <button class="btn-ghost" onclick="closeAllModals()">Закрыть</button></div>
-        <input type="text" id="mtx-amt" class="money-input" placeholder="0" inputmode="decimal">
-        <div class="h-scroll" id="mtx-accs" style="margin-bottom: 20px;"></div>
-        <div class="grid-5" id="mtx-cats"></div>
-        <input type="text" id="mtx-note" class="std-input" placeholder="Комментарий..." style="margin-top: 15px;">
-        <button class="btn-main" onclick="saveTx()">Сохранить</button>
-    </div>
+<!-- КОНЕЦ ЧАСТИ 1 -->
+    <!-- MODAL: TRANSACTION -->
+    <div id="modal-tx" class="modal-overlay">
+        <div class="bottom-sheet">
+            <div class="flex-between" style="margin-bottom:20px;">
+                <h2 id="mtx-title">Расход</h2>
+                <button class="interactive" onclick="closeModals()" style="background:none; border:none; color:white; font-size:24px;"><i class="ri-close-circle-fill"></i></button>
+            </div>
 
-    <div id="sheet-acc" class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="flex-between"><h2>Счет</h2> <button class="btn-ghost" onclick="deleteAccInit()">Удалить</button></div><br>
-        <input type="text" id="macc-name" class="std-input" placeholder="Название">
-        <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
-            <button class="sw-btn active" onclick="setAccType('card')" id="bat-card">Карта</button>
-            <button class="sw-btn" onclick="setAccType('deposit')" id="bat-dep">Вклад</button>
-            <button class="sw-btn" onclick="setAccType('invest')" id="bat-inv">Инвест</button>
+            <input type="number" id="mtx-amount" class="input-lg" placeholder="0" inputmode="decimal">
+            
+            <div class="text-xs">Счет</div>
+            <div class="cat-grid" id="mtx-accs" style="grid-template-columns: repeat(3, 1fr);"></div>
+
+            <div class="text-xs">Категория</div>
+            <div class="cat-grid" id="mtx-cats"></div>
+
+            <input type="text" id="mtx-note" class="input-std" placeholder="Комментарий">
+            
+            <button class="btn-main interactive" onclick="saveTx()">Сохранить</button>
+            <button id="mtx-del-btn" class="btn-main btn-danger interactive hidden" style="margin-top:10px;" onclick="deleteCurrentTx()">Удалить</button>
         </div>
-        <div id="macc-extra" style="display:none;"><div class="flex-between" style="gap:10px"><input type="number" id="macc-goal" class="std-input" placeholder="Цель"><input type="number" id="macc-pct" class="std-input" placeholder="%"></div></div>
-        <input type="number" id="macc-bal" class="std-input" placeholder="Текущий баланс">
-        <button class="btn-main" onclick="saveAcc()">Сохранить</button>
     </div>
 
-    <div id="sheet-cat" class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="flex-between"><h2>Категория</h2> <button class="btn-ghost" onclick="deleteCatInit()">Удалить</button></div><br>
-        <input type="text" id="mcat-name" class="std-input" placeholder="Название">
-        <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
-            <button class="sw-btn active" onclick="setCatType('expense')" id="bct-exp">Расход</button>
-            <button class="sw-btn" onclick="setCatType('income')" id="bct-inc">Доход</button>
+    <!-- MODAL: ACCOUNT -->
+    <div id="modal-acc" class="modal-overlay">
+        <div class="bottom-sheet">
+            <div class="flex-between"><h2>Счет</h2> <i class="ri-close-line interactive" onclick="closeModals()"></i></div>
+            <br>
+            <input type="text" id="macc-name" class="input-std" placeholder="Название (напр. Вклад)">
+            
+            <div class="flex-between" style="margin-bottom:10px;">
+                <button class="btn-main interactive" style="flex:1; margin-right:5px; background:var(--bg-input);" id="btn-type-card" onclick="setAccType('card')">Карта</button>
+                <button class="btn-main interactive" style="flex:1; margin-left:5px; background:var(--bg-input);" id="btn-type-invest" onclick="setAccType('invest')">Инвест</button>
+            </div>
+
+            <div id="macc-invest-fields" class="hidden">
+                <input type="number" id="macc-percent" class="input-std" placeholder="% Доходности">
+            </div>
+
+            <input type="number" id="macc-balance" class="input-std" placeholder="Текущий баланс">
+            
+            <button class="btn-main interactive" onclick="saveAccount()">Сохранить</button>
+            <button class="btn-main btn-danger interactive" style="margin-top:10px;" onclick="deleteAccount()">Удалить</button>
         </div>
-        <div class="grid-5" id="mcat-icons"></div><br>
-        <button class="btn-main" onclick="saveCat()">Сохранить</button>
     </div>
 
+    <!-- MODAL: CATEGORY -->
+    <div id="modal-cat" class="modal-overlay">
+        <div class="bottom-sheet">
+            <div class="flex-between"><h2>Категория</h2> <i class="ri-close-line interactive" onclick="closeModals()"></i></div>
+            <br>
+            <input type="text" id="mcat-name" class="input-std" placeholder="Название">
+            <input type="text" id="mcat-icon" class="input-std" placeholder="Смайлик (😎)">
+            
+            <div class="flex-between" style="margin-bottom:10px;">
+                <button class="btn-main interactive" style="flex:1; margin-right:5px; background:var(--bg-input);" id="btn-cat-exp" onclick="setCatType('expense')">Расход</button>
+                <button class="btn-main interactive" style="flex:1; margin-left:5px; background:var(--bg-input);" id="btn-cat-inc" onclick="setCatType('income')">Доход</button>
+            </div>
+
+            <button class="btn-main interactive" onclick="saveCategory()">Сохранить</button>
+            <button class="btn-main btn-danger interactive" style="margin-top:10px;" onclick="deleteCategory()">Удалить</button>
+        </div>
+    </div>
+<!-- КОНЕЦ ЧАСТИ 2 -->
     <script>
-        // !!! ТВОЯ ССЫЛКА НА ТАБЛИЦУ !!!
+        // --- КОНФИГУРАЦИЯ ---
+        // Вставь свою ссылку сюда!
         const API_URL = 'https://script.google.com/macros/s/AKfycby_ES9U2-4VYmPhMLbDtNNv_ESnbUEI9nlw0euEHsxZ6eJqu340_LpF_A1pSxyUvRxG/exec';
 
-        // INIT
+        // --- ИНИЦИАЛИЗАЦИЯ ---
         const tg = window.Telegram.WebApp;
         tg.expand();
-        
-        let USER_ID = localStorage.getItem('mcd_uid');
-        if(!USER_ID) {
-            USER_ID = tg.initDataUnsafe?.user?.id ? 'tg_'+tg.initDataUnsafe.user.id : 'user_'+Date.now().toString().slice(-6);
-            localStorage.setItem('mcd_uid', USER_ID);
-        }
+        tg.enableClosingConfirmation();
 
-        let db = JSON.parse(localStorage.getItem('mcd_db')) || {
-            user: { name: '', currency: '₽', joined: 0 },
-            accounts: [], categories: [
-                {id:'c1', name:'Еда', type:'expense', icon:'ri-restaurant-line', color:'#F59E0B'},
-                {id:'c2', name:'Такси', type:'expense', icon:'ri-taxi-fill', color:'#3B82F6'},
-                {id:'c3', name:'Дом', type:'expense', icon:'ri-home-4-line', color:'#8B5CF6'},
-                {id:'c4', name:'Зарплата', type:'income', icon:'ri-briefcase-4-line', color:'#10B981'}
-            ], transactions: []
+        // State
+        let db = {
+            user: { name: 'User', limit: 100000 },
+            accounts: [],
+            categories: [
+                {id: 'c1', name: 'Еда', icon: '🍔', type: 'expense'},
+                {id: 'c2', name: 'Дом', icon: '🏠', type: 'expense'},
+                {id: 'c3', name: 'Транспорт', icon: '🚕', type: 'expense'},
+                {id: 'c4', name: 'Зарплата', icon: '💰', type: 'income'},
+                {id: 'c5', name: 'Бизнес', icon: '💼', type: 'income'}
+            ],
+            transactions: []
         };
 
-        // ONBOARDING
-        let obStep=1, obCurrency='₽';
-        if(!db.user.name || db.accounts.length===0) {
-            document.getElementById('onboarding-screen').classList.remove('hidden');
-        } else {
-            updateHeader(); syncData();
+        // User ID Logic
+        let USER_ID = localStorage.getItem('onyx_uid');
+        if(!USER_ID) {
+            USER_ID = tg.initDataUnsafe?.user?.id ? 'tg_' + tg.initDataUnsafe.user.id : 'web_' + Date.now();
+            localStorage.setItem('onyx_uid', USER_ID);
         }
 
-        function nextStep(s) { document.getElementById('step-'+obStep).classList.remove('active'); document.getElementById('step-'+s).classList.add('active'); obStep=s; }
-        function selectCurrency(c,el) { obCurrency=c; document.querySelectorAll('.icon-box').forEach(b=>b.classList.remove('selected')); el.classList.add('selected'); }
-        function finishOnboarding() {
-            const name = document.getElementById('ob-name').value || 'Босс';
-            db.user = { name, currency: obCurrency, joined: Date.now() };
-            if(db.accounts.length===0) db.accounts.push({ id:'a1', name:'Основной', type:'card', balance:0, start:0, goal:0, percent:0 });
-            saveLocal();
-            const scr = document.getElementById('onboarding-screen');
-            scr.style.opacity = '0';
-            setTimeout(()=>scr.style.display='none', 500);
-            updateHeader(); renderAll(); syncData();
-        }
-
-        // CORE
-        function saveLocal() { localStorage.setItem('mcd_db', JSON.stringify(db)); renderAll(); }
-        function updateHeader() { document.getElementById('header-name').innerText=db.user.name; document.getElementById('header-currency').innerText=db.user.currency; }
-        function formatMoney(n) { return new Intl.NumberFormat('ru-RU').format(Math.floor(n)) + ' ' + db.user.currency; }
-        function vibe() { try{ tg.HapticFeedback.impactOccurred('light'); }catch(e){} }
-
-        // SYNC (SAFE MODE)
-        async function syncData() {
-            updateSyncStatus('syncing');
+        // --- CORE LOGIC: SYNC ---
+        async function initApp() {
+            // 1. Try Load Local
+            const localData = localStorage.getItem('onyx_db');
+            if(localData) db = JSON.parse(localData);
             
-            // Timeout promise to prevent freeze
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000));
-            const fetchPromise = fetch(`${API_URL}?action=load&user_id=${USER_ID}`);
-
+            // 2. Try Fetch Cloud
             try {
-                const res = await Promise.race([fetchPromise, timeoutPromise]);
+                const res = await fetch(`${API_URL}?action=load&user_id=${USER_ID}`);
                 const json = await res.json();
+                
                 if(json.status === 'success') {
-                    if(json.data.accounts.length) db.accounts = json.data.accounts;
-                    if(json.data.categories.length) db.categories = json.data.categories;
-                    if(json.data.transactions.length) db.transactions = json.data.transactions;
-                    recalc();
-                    updateSyncStatus('online');
+                    // Check if cloud has data
+                    if(json.data.accounts && json.data.accounts.length > 0) {
+                        db.accounts = json.data.accounts;
+                        db.categories = json.data.categories;
+                        db.transactions = json.data.transactions;
+                        // User settings might be stored in accounts metadata or separate, 
+                        // for MVP we rely on local for user settings or first account meta
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('screen-app').classList.remove('hidden');
+                    } else {
+                        // Cloud empty -> Check Local
+                        if(db.accounts.length === 0) {
+                            // New User
+                            document.getElementById('loader').style.display = 'none';
+                            document.getElementById('screen-onboarding').classList.remove('hidden');
+                            return;
+                        } else {
+                            // Has local but empty cloud -> Push Local to Cloud
+                            forceSync();
+                            document.getElementById('loader').style.display = 'none';
+                            document.getElementById('screen-app').classList.remove('hidden');
+                        }
+                    }
                 }
             } catch(e) {
-                console.log('Offline mode:', e);
-                updateSyncStatus('offline');
+                console.error("Offline mode", e);
+                document.getElementById('sync-status').innerText = "OFFLINE";
+                document.getElementById('sync-status').style.color = "red";
+                document.getElementById('loader').style.display = 'none';
+                if(db.accounts.length === 0) document.getElementById('screen-onboarding').classList.remove('hidden');
+                else document.getElementById('screen-app').classList.remove('hidden');
+            }
+            
+            renderAll();
+        }
+
+        async function forceSync() {
+            document.getElementById('sync-status').innerText = "SYNCING...";
+            try {
+                await fetch(API_URL + '?action=sync_all', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        user_id: USER_ID,
+                        accounts: db.accounts,
+                        categories: db.categories,
+                        transactions: db.transactions
+                    })
+                });
+                document.getElementById('sync-status').innerText = "SYNC: OK";
+                document.getElementById('sync-status').style.color = "var(--text-sec)";
+            } catch(e) {
+                document.getElementById('sync-status').innerText = "ERR";
             }
         }
 
-        function updateSyncStatus(s) {
-            const dot = document.getElementById('sync-dot');
-            const txt = document.getElementById('sync-text');
-            dot.className = 'status-dot ' + s;
-            txt.innerText = s==='syncing'?'Загрузка':(s==='online'?'В сети':'Оффлайн');
+        function saveLocal() {
+            localStorage.setItem('onyx_db', JSON.stringify(db));
+            renderAll();
         }
 
-        async function pushTx(tx) {
-            try { fetch(API_URL+'?action=add_tx', {method:'POST', mode:'no-cors', body:JSON.stringify({...tx, user_id:USER_ID})}); } catch(e){}
+        // --- ONBOARDING ---
+        function completeSetup() {
+            const name = document.getElementById('setup-name').value || 'User';
+            const limit = parseFloat(document.getElementById('setup-limit').value) || 100000;
+            
+            db.user.name = name;
+            db.user.limit = limit;
+            
+            // Create Default Accounts
+            db.accounts.push({id: 'a1', name: 'Наличные', type: 'card', balance: 0, percent: 0});
+            db.accounts.push({id: 'a2', name: 'Карта', type: 'card', balance: 0, percent: 0});
+            
+            saveLocal();
+            forceSync();
+            
+            document.getElementById('screen-onboarding').classList.add('hidden');
+            document.getElementById('screen-app').classList.remove('hidden');
+        }
+
+        // --- RENDERERS ---
+        function renderAll() {
+            // 1. Calculate Totals
+            let totalPassive = 0;
+            let totalExpense = 0;
+            let currentBalance = 0;
+            
+            const now = new Date();
+            const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
+
+            // Calc Balances & Passive Income
+            // Reset temp balances
+            db.accounts.forEach(a => a._tempBal = parseFloat(a.balance)); 
+            
+            // Note: In this simple version, 'balance' in DB is treated as Initial Balance.
+            // Real balance = Initial + Sum of Transactions.
+            // For simplicity in V9, we will iterate transactions to update current view.
+            
+            let realBalances = {};
+            db.accounts.forEach(a => realBalances[a.id] = parseFloat(a.balance));
+
+            db.transactions.forEach(t => {
+                if(realBalances[t.accountId] !== undefined) {
+                    if(t.type === 'income') realBalances[t.accountId] += parseFloat(t.amount);
+                    else realBalances[t.accountId] -= parseFloat(t.amount);
+                }
+                // Monthly Stats
+                if(t.date.startsWith(currentMonth)) {
+                    if(t.type === 'expense') totalExpense += parseFloat(t.amount);
+                }
+            });
+
+            // Calc Passive Income (Potential)
+            db.accounts.forEach(a => {
+                if(a.type === 'invest') {
+                    // Formula: Balance * (Percent / 100) / 12
+                    const monthlyPassive = (realBalances[a.id] * (parseFloat(a.percent)||0) / 100) / 12;
+                    totalPassive += monthlyPassive;
+                }
+            });
+
+            // 2. Render Dashboard (Home)
+            // Financial Freedom Bar
+            const ffPercent = totalExpense > 0 ? Math.min(100, (totalPassive / totalExpense) * 100) : 0;
+            document.getElementById('cf-bar').style.width = ffPercent + '%';
+            document.getElementById('cf-percent').innerText = ffPercent.toFixed(1) + '%';
+            document.getElementById('cf-passive').innerText = Math.floor(totalPassive).toLocaleString() + ' ₽';
+            document.getElementById('cf-expense').innerText = Math.floor(totalExpense).toLocaleString() + ' ₽';
+
+            // Budget Bar
+            const budgetLimit = db.user.limit || 100000;
+            const budgetPct = Math.min(100, (totalExpense / budgetLimit) * 100);
+            const budgetBar = document.getElementById('budget-bar');
+            budgetBar.style.width = budgetPct + '%';
+            // Color Logic
+            if(budgetPct < 50) budgetBar.className = 'progress-fill fill-success';
+            else if(budgetPct < 85) budgetBar.className = 'progress-fill fill-primary';
+            else budgetBar.className = 'progress-fill fill-red';
+            
+            document.getElementById('budget-left').innerText = 'Осталось: ' + (budgetLimit - totalExpense).toLocaleString() + ' ₽';
+            document.getElementById('budget-total').innerText = 'из ' + budgetLimit.toLocaleString() + ' ₽';
+
+            // Transactions List
+            const txContainer = document.getElementById('tx-list');
+            txContainer.innerHTML = db.transactions.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 10).map(t => {
+                const cat = db.categories.find(c => c.id == t.categoryId) || {name: '?', icon: '❓'};
+                const acc = db.accounts.find(a => a.id == t.accountId);
+                return `
+                <div class="card interactive" style="padding: 15px; display: flex; align-items: center; gap: 15px;" onclick="editTx('${t.id}')">
+                    <div style="font-size: 24px;">${cat.icon}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">${cat.name}</div>
+                        <div class="text-sm">${acc ? acc.name : 'Unknown'} • ${t.comment || ''}</div>
+                    </div>
+                    <div style="font-weight: 700; color: ${t.type==='expense' ? 'var(--text-main)' : 'var(--success)'}">
+                        ${t.type==='expense' ? '-' : '+'}${parseFloat(t.amount).toLocaleString()}
+                    </div>
+                </div>`;
+            }).join('');
+
+            // 3. Render Wallet Lists
+            document.getElementById('settings-acc-list').innerHTML = db.accounts.map(a => `
+                <div class="card interactive flex-between" onclick="editAccount('${a.id}')">
+                    <div class="flex-col">
+                        <b>${a.name}</b>
+                        <span class="text-sm">${a.type === 'invest' ? '📈 Инвестиции' : '💳 Карта'}</span>
+                    </div>
+                    <b>${Math.floor(realBalances[a.id]).toLocaleString()} ₽</b>
+                </div>
+            `).join('');
+
+            document.getElementById('settings-cat-list').innerHTML = db.categories.map(c => `
+                <div class="interactive" style="display:inline-block; background:var(--bg-input); padding:8px 12px; border-radius:12px; margin:4px;" onclick="editCategory('${c.id}')">
+                    ${c.icon} ${c.name}
+                </div>
+            `).join('');
+            
+            // Invest List
+            document.getElementById('invest-accounts-list').innerHTML = db.accounts.filter(a => a.type === 'invest').map(a => `
+                <div class="card flex-between">
+                    <div>
+                        <b>${a.name}</b>
+                        <div class="text-sm" style="color:var(--success)">${a.percent}% годовых</div>
+                    </div>
+                    <b>${Math.floor(realBalances[a.id]).toLocaleString()}</b>
+                </div>
+            `).join('');
+
+            // Update Header Greeting
+            document.getElementById('user-greeting').innerText = db.user.name;
+            document.getElementById('settings-limit').value = db.user.limit;
+        }
+
+        // --- MODALS & ACTIONS ---
+        let editTxId = null;
+        let activeTxType = 'expense';
+        let activeTxAcc = '';
+        let activeTxCat = '';
+
+        function openTxModal(type) {
+            editTxId = null;
+            activeTxType = type;
+            document.getElementById('mtx-title').innerText = type === 'expense' ? 'Расход' : 'Доход';
+            document.getElementById('mtx-amount').value = '';
+            document.getElementById('mtx-note').value = '';
+            document.getElementById('mtx-del-btn').classList.add('hidden');
+            
+            // Render Accs Selection
+            activeTxAcc = db.accounts[0]?.id;
+            document.getElementById('mtx-accs').innerHTML = db.accounts.map(a => `
+                <div class="cat-item interactive ${activeTxAcc == a.id ? 'selected-border' : ''}" onclick="selectTxAcc('${a.id}', this)">
+                    <div style="font-weight:700; font-size:12px;">${a.name}</div>
+                </div>
+            `).join('');
+
+            // Render Cats Selection
+            const cats = db.categories.filter(c => c.type === type);
+            activeTxCat = cats[0]?.id;
+            document.getElementById('mtx-cats').innerHTML = cats.map(c => `
+                <div class="cat-item interactive ${activeTxCat == c.id ? 'selected-border' : ''}" onclick="selectTxCat('${c.id}', this)">
+                    <div class="cat-emoji">${c.icon}</div>
+                    <div class="cat-name">${c.name}</div>
+                </div>
+            `).join('');
+
+            openModal('modal-tx');
+        }
+
+        function editTx(id) {
+            const t = db.transactions.find(x => x.id === id);
+            if(!t) return;
+            openTxModal(t.type); // Re-use open to setup UI
+            editTxId = id;
+            document.getElementById('mtx-amount').value = t.amount;
+            document.getElementById('mtx-note').value = t.comment;
+            document.getElementById('mtx-del-btn').classList.remove('hidden');
+            activeTxAcc = t.accountId;
+            activeTxCat = t.categoryId;
+            // Re-highlight selections (simplified for brevity, ideally querySelector)
+        }
+
+        function saveTx() {
+            const amt = document.getElementById('mtx-amount').value;
+            if(!amt) return;
+            
+            const txData = {
+                id: editTxId || 'tx_' + Date.now(),
+                date: editTxId ? db.transactions.find(x=>x.id==editTxId).date : new Date().toISOString(),
+                amount: parseFloat(amt),
+                type: activeTxType,
+                accountId: activeTxAcc,
+                categoryId: activeTxCat,
+                comment: document.getElementById('mtx-note').value
+            };
+
+            if(editTxId) {
+                const idx = db.transactions.findIndex(x => x.id === editTxId);
+                db.transactions[idx] = txData;
+            } else {
+                db.transactions.push(txData);
+            }
+            
+            saveLocal();
+            closeModals();
+            pushTx(txData); // BG Sync
+        }
+
+        function deleteCurrentTx() {
+            if(confirm('Удалить запись?')) {
+                db.transactions = db.transactions.filter(x => x.id !== editTxId);
+                saveLocal();
+                forceSync(); // Sync deletion
+                closeModals();
+            }
+        }
+
+        function selectTxAcc(id, el) {
+            activeTxAcc = id;
+            document.querySelectorAll('#mtx-accs .cat-item').forEach(e => e.classList.remove('selected-border'));
+            el.classList.add('selected-border');
+        }
+        function selectTxCat(id, el) {
+            activeTxCat = id;
+            document.querySelectorAll('#mtx-cats .cat-item').forEach(e => e.classList.remove('selected-border'));
+            el.classList.add('selected-border');
+        }
+
+        // --- ACCOUNT/CAT MANAGEMENT ---
+        let editAccId = null;
+        let newAccType = 'card';
+
+        function openAccountModal() { editAccId = null; document.getElementById('macc-name').value = ''; document.getElementById('macc-balance').value = ''; openModal('modal-acc'); }
+        function editAccount(id) { 
+            editAccId = id; 
+            const a = db.accounts.find(x => x.id === id);
+            document.getElementById('macc-name').value = a.name;
+            document.getElementById('macc-balance').value = a.balance; // Only editing Initial balance logic for simplicity
+            setAccType(a.type);
+            if(a.type === 'invest') document.getElementById('macc-percent').value = a.percent;
+            openModal('modal-acc'); 
         }
         
-        async function forceSync() {
-            if(!confirm('Обновить данные в облаке?')) return;
-            updateSyncStatus('syncing');
-            try {
-                await fetch(API_URL+'?action=sync_all', {method:'POST', mode:'no-cors', body:JSON.stringify({user_id:USER_ID, accounts:db.accounts, categories:db.categories, transactions:db.transactions})});
-                alert('Успешно!'); updateSyncStatus('online');
-            } catch(e) { alert('Ошибка сети'); updateSyncStatus('offline'); }
+        function setAccType(t) {
+            newAccType = t;
+            document.getElementById('btn-type-card').classList.toggle('selected-border', t === 'card');
+            document.getElementById('btn-type-invest').classList.toggle('selected-border', t === 'invest');
+            document.getElementById('macc-invest-fields').classList.toggle('hidden', t !== 'invest');
         }
 
-        function recalc() {
-            db.accounts.forEach(a => a.balance = parseFloat(a.start||0));
-            db.transactions.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(t => {
-                const acc = db.accounts.find(a => a.id == t.accountId);
-                if(acc) t.type==='income' ? acc.balance += t.amount : acc.balance -= t.amount;
-            });
+        function saveAccount() {
+            const name = document.getElementById('macc-name').value;
+            if(!name) return;
+            const data = {
+                id: editAccId || 'acc_' + Date.now(),
+                name: name,
+                type: newAccType,
+                balance: parseFloat(document.getElementById('macc-balance').value) || 0,
+                percent: parseFloat(document.getElementById('macc-percent')?.value) || 0
+            };
+            
+            if(editAccId) {
+                const idx = db.accounts.findIndex(x => x.id === editAccId);
+                db.accounts[idx] = data;
+            } else {
+                db.accounts.push(data);
+            }
+            saveLocal();
+            forceSync();
+            closeModals();
+        }
+
+        function deleteAccount() {
+            if(editAccId && confirm('Удалить счет и все связанные операции?')) {
+                db.accounts = db.accounts.filter(x => x.id !== editAccId);
+                saveLocal(); forceSync(); closeModals();
+            }
+        }
+
+        // --- CATEGORY LOGIC (Simplified) ---
+        let editCatId = null; 
+        let newCatType = 'expense';
+        
+        function openCatModal() { editCatId = null; openModal('modal-cat'); }
+        function editCategory(id) { 
+            editCatId = id; 
+            const c = db.categories.find(x => x.id === id);
+            document.getElementById('mcat-name').value = c.name;
+            document.getElementById('mcat-icon').value = c.icon;
+            setCatType(c.type);
+            openModal('modal-cat'); 
+        }
+        function setCatType(t) { newCatType = t; document.getElementById('btn-cat-exp').classList.toggle('selected-border', t==='expense'); document.getElementById('btn-cat-inc').classList.toggle('selected-border', t==='income'); }
+        
+        function saveCategory() {
+            const name = document.getElementById('mcat-name').value;
+            if(!name) return;
+            const data = {
+                id: editCatId || 'cat_' + Date.now(),
+                name: name,
+                icon: document.getElementById('mcat-icon').value || '⏺️',
+                type: newCatType
+            };
+            if(editCatId) { const idx = db.categories.findIndex(x=>x.id===editCatId); db.categories[idx] = data; }
+            else { db.categories.push(data); }
+            saveLocal(); forceSync(); closeModals();
+        }
+        function deleteCategory() { if(editCatId && confirm('Удалить?')) { db.categories = db.categories.filter(x=>x.id!==editCatId); saveLocal(); forceSync(); closeModals(); } }
+
+        function saveSettingsLimit() {
+            db.user.limit = parseFloat(document.getElementById('settings-limit').value);
             saveLocal();
         }
 
-        // RENDER
-        function renderAll() {
-            document.getElementById('total-bal').innerText = formatMoney(db.accounts.reduce((s,a)=>s+a.balance, 0));
-            document.getElementById('home-accs').innerHTML = db.accounts.map(a => `<div class="acc-chip" onclick="editAcc('${a.id}')"><div class="flex-between"><b>${a.name}</b></div><div style="font-size:18px; font-weight:800; color:var(--primary); margin-top:5px;">${formatMoney(a.balance)}</div></div>`).join('');
+        // --- INVEST CALCULATOR ---
+        function runCalc() {
+            const amt = parseFloat(document.getElementById('calc-amount').value);
+            const pct = parseFloat(document.getElementById('calc-percent').value);
+            if(!amt || !pct) return;
             
-            const recent = db.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0, 8);
-            document.getElementById('home-txs').innerHTML = recent.map(t => {
-                const c = db.categories.find(x=>x.id==t.categoryId) || {name:'?',icon:'ri-question-line',color:'#999'};
-                return `<div class="card" style="padding:12px; margin-bottom:8px; display:flex; align-items:center; gap:12px;" onclick="openTxModal('${t.type}')"><div style="width:40px; height:40px; border-radius:12px; background:${c.color}20; color:${c.color}; display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="${c.icon}"></i></div><div style="flex:1"><b>${c.name}</b><br><small>${new Date(t.date).toLocaleDateString()}</small></div><b>${t.type=='expense'?'-':'+'}${Math.floor(t.amount)}</b></div>`;
-            }).join('');
-
-            // Wallet Lists
-            document.getElementById('wallet-accs').innerHTML = db.accounts.map(a => `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #eee" onclick="editAcc('${a.id}')"><b>${a.name}</b> <span>${formatMoney(a.balance)}</span></div>`).join('');
-            document.getElementById('wallet-cats').innerHTML = db.categories.map(c => `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #eee" onclick="editCat('${c.id}')"><div style="display:flex; gap:10px;"><i class="${c.icon}" style="color:${c.color}"></i> ${c.name}</div></div>`).join('');
+            const profitYear = amt * (pct / 100);
+            const totalYear = amt + profitYear;
+            const passiveMonth = profitYear / 12;
             
-            // Invest
-            const invAccs = db.accounts.filter(a => a.type !== 'card');
-            document.getElementById('invest-list').innerHTML = invAccs.map(a => `<div class="card flex-between"><div><b>${a.name}</b><br><small>${a.percent}% год.</small></div><b>${formatMoney(a.balance)}</b></div>`).join('');
-            renderStats(); renderWeekChart();
+            document.getElementById('calc-res-year').innerText = totalYear.toLocaleString() + ' ₽';
+            document.getElementById('calc-res-month').innerText = passiveMonth.toLocaleString() + ' ₽';
         }
 
-        // CHARTS
-        let statMode='expense';
-        function setStatMode(m,el){ statMode=m; document.querySelectorAll('.sw-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderStats(); }
-        function renderStats(){
-            const ctx=document.getElementById('chart-pie');
-            const txs=db.transactions.filter(t=>t.type===statMode);
-            const cats={}; txs.forEach(t=>cats[t.categoryId]=(cats[t.categoryId]||0)+t.amount);
-            if(window.pie) window.pie.destroy();
-            window.pie = new Chart(ctx, {type:'doughnut', data:{labels:Object.keys(cats), datasets:[{data:Object.values(cats), backgroundColor:['#F59E0B','#3B82F6','#10B981','#8B5CF6','#EF4444'], borderWidth:0}]}, options:{maintainAspectRatio:false, plugins:{legend:{display:false}}}});
-            document.getElementById('stats-list').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([id,v])=>{ const c=db.categories.find(x=>x.id==id)||{name:'?',color:'#999'}; return `<div class="flex-between" style="padding:10px 0; border-bottom:1px solid #eee"><div style="display:flex; gap:10px"><div style="width:10px; height:10px; border-radius:50%; background:${c.color}"></div> ${c.name}</div><b>${formatMoney(v)}</b></div>`; }).join('');
-        }
-        function renderWeekChart(){
-            const ctx=document.getElementById('chart-invest');
-            const data=[0,0,0,0,0,0,0]; const now=new Date();
-            db.transactions.forEach(t=>{ if(t.type=='expense' && Math.abs(now-new Date(t.date))<604800000) data[new Date(t.date).getDay()]+=t.amount; });
-            if(window.line) window.line.destroy();
-            window.line = new Chart(ctx, {type:'line', data:{labels:['Вс','Пн','Вт','Ср','Чт','Пт','Сб'], datasets:[{data, borderColor:'#6366F1', backgroundColor:'rgba(99,102,241,0.1)', fill:true, tension:0.4}]}, options:{maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}}}});
+        // --- NAVIGATION & UTILS ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            // Highlight nav logic needs ID on buttons, simplified here for length
+            if(viewName === 'analytics') renderChart();
         }
 
-        // MODALS
-        let curTx={type:'expense', acc:'', cat:''};
-        function openTxModal(type) {
-            vibe(); curTx={type, acc:db.accounts[0]?.id, cat:''};
-            document.getElementById('mtx-title').innerText=type=='expense'?'Расход':'Доход';
-            document.getElementById('mtx-amt').value='';
-            document.getElementById('mtx-accs').innerHTML=db.accounts.map(a=>`<div class="acc-chip" onclick="curTx.acc='${a.id}'; this.parentElement.childNodes.forEach(x=>x.classList.remove('active')); this.classList.add('active')"><b>${a.name}</b><br><small>${formatMoney(a.balance)}</small></div>`).join('');
-            document.getElementById('mtx-cats').innerHTML=db.categories.filter(c=>c.type==type).map(c=>`<div class="icon-box" style="color:${c.color}" onclick="curTx.cat='${c.id}'; this.parentElement.childNodes.forEach(x=>x.classList.remove('selected')); this.classList.add('selected')"><i class="${c.icon}"></i></div>`).join('');
-            openSheet('sheet-tx');
-        }
-        function saveTx() {
-            const amt=parseFloat(document.getElementById('mtx-amt').value);
-            if(!amt || !curTx.acc || !curTx.cat) return vibe();
-            const tx={id:'tx_'+Date.now(), date:new Date().toISOString(), amount:amt, type:curTx.type, accountId:curTx.acc, categoryId:curTx.cat, comment:document.getElementById('mtx-note').value, isWaste:false};
-            db.transactions.push(tx); recalc(); pushTx(tx); closeAllModals();
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open')); }
+
+        function renderChart() {
+            const ctx = document.getElementById('chart-main');
+            // Group by date
+            const data = {};
+            db.transactions.filter(t => t.type === 'expense').forEach(t => {
+                const date = t.date.slice(0, 10);
+                data[date] = (data[date] || 0) + t.amount;
+            });
+            const labels = Object.keys(data).sort().slice(-7); // Last 7 days
+            const values = labels.map(d => data[d]);
+            
+            if(window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(d => d.slice(5)),
+                    datasets: [{ label: 'Расходы', data: values, backgroundColor: '#6366f1', borderRadius: 5 }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, grid: { color: '#333' } }, x: { grid: { display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
 
-        let editAccId=null, newAccType='card';
-        function openAccModal(){editAccId=null; openSheet('sheet-acc');}
-        function editAcc(id){editAccId=id; const a=db.accounts.find(x=>x.id==id); document.getElementById('macc-name').value=a.name; document.getElementById('macc-bal').value=a.start; openSheet('sheet-acc');}
-        function setAccType(t){newAccType=t; document.querySelectorAll('#sheet-acc .sw-btn').forEach(b=>b.classList.remove('active')); document.getElementById('bat-'+(t=='deposit'?'dep':(t=='invest'?'inv':'card'))).classList.add('active'); document.getElementById('macc-extra').style.display=t=='card'?'none':'block';}
-        function saveAcc(){
-            const name=document.getElementById('macc-name').value; if(!name)return;
-            const data={id:editAccId||'acc_'+Date.now(), name, type:newAccType, start:parseFloat(document.getElementById('macc-bal').value)||0, goal:parseFloat(document.getElementById('macc-goal').value)||0, percent:parseFloat(document.getElementById('macc-pct').value)||0};
-            if(editAccId){ const idx=db.accounts.findIndex(x=>x.id==editAccId); data.balance=db.accounts[idx].balance; db.accounts[idx]={...db.accounts[idx], ...data}; }
-            else { data.balance=data.start; db.accounts.push(data); }
-            recalc(); closeAllModals();
-        }
-        function deleteAccInit(){if(editAccId && confirm('Удалить?')){db.accounts=db.accounts.filter(x=>x.id!=editAccId); recalc(); closeAllModals();}}
+        // START
+        initApp();
 
-        let editCatId=null, newCatType='expense';
-        function openCatModal(){editCatId=null; openSheet('sheet-cat'); const icons=['ri-star-line','ri-home-4-line','ri-car-line','ri-shopping-cart-2-line']; document.getElementById('mcat-icons').innerHTML=icons.map(i=>`<div class="icon-box" onclick="curTx.catIcon='${i}'; this.parentElement.childNodes.forEach(x=>x.classList.remove('selected')); this.classList.add('selected')"><i class="${i}"></i></div>`).join('');}
-        function editCat(id){editCatId=id; const c=db.categories.find(x=>x.id==id); document.getElementById('mcat-name').value=c.name; openSheet('sheet-cat');}
-        function setCatType(t){newCatType=t; document.getElementById('bct-exp').classList.toggle('active', t=='expense'); document.getElementById('bct-inc').classList.toggle('active', t=='income');}
-        function saveCat(){
-            const name=document.getElementById('mcat-name').value; if(!name)return;
-            const data={id:editCatId||'cat_'+Date.now(), name, type:newCatType, icon:curTx.catIcon||'ri-star-line', color:'#6366F1'};
-            if(editCatId){ const idx=db.categories.findIndex(x=>x.id==editCatId); db.categories[idx]=data; }
-            else { db.categories.push(data); }
-            saveLocal(); closeAllModals();
-        }
-        function deleteCatInit(){if(editCatId && confirm('Удалить?')){db.categories=db.categories.filter(x=>x.id!=editCatId); saveLocal(); closeAllModals();}}
-
-        // HELPERS
-        function nav(scr,btn){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('scr-'+scr).classList.add('active'); document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); if(scr=='stats') renderStats(); }
-        function openSheet(id){ vibe(); document.getElementById('overlay').classList.add('open'); document.getElementById(id).classList.add('open'); }
-        function closeAllModals(){ document.getElementById('overlay').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
-        function toggleTheme(){ document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')=='dark'?'light':'dark'); }
-
-        // Start
-        recalc(); syncData();
     </script>
 </body>
 </html>
