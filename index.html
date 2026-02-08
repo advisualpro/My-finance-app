@@ -3,92 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyCosts Sync Master</title>
+    <title>MyCosts Infinity</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg: #F0F2F5; --card: #FFFFFF; --text: #111827; --text-sec: #6B7280;
-            --primary: #4F46E5; --primary-soft: rgba(79, 70, 229, 0.1);
-            --success: #10B981; --danger: #EF4444;
-            --radius: 24px; --shadow: 0 8px 30px rgba(0,0,0,0.06);
-            --font: 'Inter', sans-serif;
-        }
-        [data-theme="dark"] {
-            --bg: #000000; --card: #1C1C1E; --text: #FFFFFF; --text-sec: #8E8E93;
-            --primary: #5E5CE6; --primary-soft: rgba(94, 92, 230, 0.2);
+            --bg: #09090B; --card: #18181B; --text: #FFFFFF; --text-sec: #A1A1AA;
+            --primary: #6366F1; --success: #10B981; --danger: #F43F5E;
+            --gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --radius: 24px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding-bottom: 120px; user-select: none; overflow-x: hidden; }
+        body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 110px; user-select: none; }
+        
         .container { padding: 20px; max-width: 480px; margin: 0 auto; }
         
-        h1, h2 { margin: 0; font-weight: 800; }
-        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
+        /* TYPOGRAPHY */
+        h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+        .text-xs { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-sec); letter-spacing: 1px; margin-bottom: 5px; display: block; }
         .text-sm { font-size: 13px; color: var(--text-sec); }
-        
-        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); position: relative; }
+
+        /* CARDS */
+        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; position: relative; border: 1px solid rgba(255,255,255,0.05); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         
-        /* Inputs & Buttons */
-        .input-money { width: 100%; font-size: 40px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; }
-        .input-std { width: 100%; padding: 16px; border-radius: 16px; background: var(--bg); border: 1px solid transparent; color: var(--text); font-size: 16px; margin-bottom: 12px; outline: none; box-sizing: border-box; transition: 0.3s; }
-        .input-std:focus { background: var(--card); border-color: var(--primary); }
+        /* BALANCE CARD */
+        .bal-card { text-align: center; padding: 35px 20px; background: radial-gradient(circle at top, rgba(99,102,241,0.15), transparent 70%), var(--card); }
+        .bal-val { font-size: 46px; font-weight: 800; margin: 10px 0; letter-spacing: -1px; }
 
-        .btn-main { width: 100%; padding: 16px; border-radius: 18px; background: var(--primary); color: white; border: none; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
-        .btn-ghost { background: transparent; color: var(--primary); border: none; font-weight: 600; padding: 5px 10px; font-size: 14px; cursor: pointer; }
-        
-        /* Modals */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.2s; backdrop-filter: blur(4px); }
-        .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 28px 28px 0 0; padding: 25px; transform: translateY(100%); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 2001; max-height: 90vh; overflow-y: auto; }
+        /* BUTTONS */
+        .btn-main { width: 100%; padding: 16px; border-radius: 18px; background: var(--text); color: var(--bg); border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-act { padding: 16px; border-radius: 18px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-exp { background: rgba(244, 63, 94, 0.15); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.3); }
+        .btn-inc { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .btn-ghost { background: transparent; color: var(--primary); border: none; font-weight: 600; font-size: 14px; padding: 5px 10px; cursor: pointer; }
+
+        /* INPUTS */
+        .input-money { width: 100%; font-size: 40px; font-weight: 800; text-align: center; background: transparent; border: none; color: var(--text); padding: 20px 0; }
+        .input-std { width: 100%; padding: 16px; border-radius: 16px; background: var(--bg); border: 1px solid rgba(255,255,255,0.1); color: var(--text); font-size: 16px; margin-bottom: 12px; }
+
+        /* NAV */
+        .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; margin: auto; max-width: 440px; background: rgba(24,24,27,0.9); backdrop-filter: blur(20px); border-radius: 30px; padding: 12px 25px; display: flex; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); z-index: 900; }
+        .nav-item { border: none; background: none; color: var(--text-sec); font-size: 26px; padding: 5px; transition: 0.2s; position: relative; }
+        .nav-item.active { color: var(--text); transform: translateY(-3px); }
+        .nav-item.active::after { content:''; position:absolute; bottom:-5px; left:50%; transform:translate(-50%); width:4px; height:4px; background:var(--primary); border-radius:50%; }
+
+        /* MODALS */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
+        .overlay.open { opacity: 1; pointer-events: all; }
+        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1C1C1E; border-radius: 30px 30px 0 0; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2001; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); }
         .sheet.open { transform: translateY(0); }
 
-        /* Auth Screen */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; justify-content: center; padding: 30px; text-align: center; }
-        .hidden { display: none !important; }
-
-        /* Nav */
-        .nav-bar { position: fixed; bottom: 25px; left: 20px; right: 20px; margin: auto; max-width: 440px; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); border-radius: 30px; padding: 10px 25px; display: flex; justify-content: space-between; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 900; border: 1px solid rgba(255,255,255,0.1); }
-        [data-theme="dark"] .nav-bar { background: rgba(30, 41, 59, 0.9); border-color: rgba(255,255,255,0.05); }
-        .nav-item { border: none; background: none; color: var(--text-sec); font-size: 26px; padding: 10px; transition: 0.2s; }
-        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
-
-        /* Components */
+        /* CHIPS & GRIDS */
         .h-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
-        .acc-chip { min-width: 140px; background: var(--card); border: 1px solid rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; flex-shrink: 0; border: 2px solid transparent; }
-        .acc-chip.selected { border-color: var(--primary); background: var(--primary-soft); }
+        .chip { min-width: 130px; background: var(--card); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 18px; transition: 0.2s; text-align: left; }
+        .chip.selected { border-color: var(--primary); background: rgba(99,102,241,0.1); }
         
         .icon-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .icon-box { aspect-ratio: 1; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border: 2px solid transparent; }
+        .icon-box { aspect-ratio: 1; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border: 1px solid transparent; }
         .icon-box.selected { background: var(--primary); color: white; }
 
-        .sync-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; transition: 0.3s; }
-        .sync-dot.ok { background: var(--success); box-shadow: 0 0 10px var(--success); }
-        .sync-dot.load { background: #F59E0B; animation: pulse 1s infinite; }
+        /* GOALS BAR */
+        .prog-bg { height: 6px; background: var(--bg); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .prog-fill { height: 100%; background: var(--gradient); width: 0%; }
+
+        /* SYNC STATUS */
+        .sync-badge { position: absolute; top: 20px; right: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; color: var(--text-sec); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #333; }
+        .dot.ok { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .dot.load { background: var(--warning); animation: pulse 1s infinite; }
         @keyframes pulse { 0% {opacity:0.5} 50% {opacity:1} 100% {opacity:0.5} }
 
-        .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .hidden { display: none !important; }
+        .screen { display: none; animation: fade 0.3s; }
+        .screen.active { display: block; }
+        @keyframes fade { from { opacity:0; } to { opacity:1; } }
     </style>
 </head>
 <body>
 
-    <!-- AUTH SCREEN (LOGIN) -->
-    <div id="auth-screen" class="hidden">
-        <div style="font-size: 60px; margin-bottom: 20px;">🔐</div>
-        <h1>Вход</h1>
-        <p class="text-sm" style="margin-bottom: 30px;">
-            Чтобы синхронизировать данные между устройствами, придумай себе уникальный ID (Никнейм).<br>
-            <b>Используй его же на втором устройстве!</b>
-        </p>
-        <input type="text" id="auth-id" class="input-std" placeholder="Придумай ID (напр. katya_boss)" style="text-align:center; font-weight:bold;">
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen" class="overlay" style="background:#000; z-index:5000; display:flex; flex-direction:column; justify-content:center; text-align:center; padding:30px;">
+        <div style="font-size: 60px; margin-bottom: 20px;">💎</div>
+        <h1>MyCosts Infinity</h1>
+        <p class="text-sm" style="margin-bottom: 40px; color:var(--text-sec)">Введи свой уникальный ID для синхронизации.</p>
+        <input type="text" id="auth-id" class="input-std" placeholder="Придумай ID (напр. katya_boss)" style="text-align:center">
         <input type="text" id="auth-name" class="input-std" placeholder="Твое имя" style="text-align:center">
-        <button class="btn-main" onclick="manualLogin()">Войти / Создать</button>
+        <button class="btn-main" onclick="manualLogin()">Войти</button>
     </div>
 
     <div class="container">
@@ -96,40 +101,41 @@
         <div class="flex-between" style="margin-bottom: 20px; padding-top: 10px;">
             <div>
                 <h2 id="head-name">...</h2>
-                <div class="flex-between" style="justify-content: flex-start; gap: 8px;">
-                    <div class="sync-dot" id="sync-dot"></div>
-                    <div class="text-xs" id="sync-text" style="margin:0">ID: ...</div>
-                </div>
+                <div class="text-xs" id="head-id">ID: ...</div>
             </div>
-            <button onclick="toggleTheme()" style="background:var(--card); border:none; width:40px; height:40px; border-radius:50%; box-shadow:0 4px 10px rgba(0,0,0,0.05);"><i class="ri-moon-line"></i></button>
+            <div class="flex-between" style="gap:5px">
+                <div class="dot" id="sync-dot"></div>
+                <span class="text-xs" id="sync-text" style="margin:0">OFFLINE</span>
+            </div>
         </div>
 
         <!-- 1. HOME -->
         <div id="scr-home" class="screen active">
-            <div class="card" style="text-align: center; padding: 30px 20px;">
-                <div class="text-xs">Баланс</div>
-                <div style="font-size: 44px; font-weight: 900; margin: 10px 0; letter-spacing: -1px;" id="total-bal">0</div>
+            <div class="card bal-card">
+                <div class="text-xs">ДОСТУПНО СЕЙЧАС</div>
+                <div class="bal-val" id="total-bal">0</div>
             </div>
 
-            <!-- ACTION BUTTONS -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                <button class="btn-main" style="background:var(--danger)" onclick="openTx('expense')"><i class="ri-arrow-down-line"></i> Расход</button>
-                <button class="btn-main" style="background:var(--success)" onclick="openTx('income')"><i class="ri-arrow-up-line"></i> Доход</button>
+                <button class="btn-act btn-exp" onclick="openTx('expense')"><i class="ri-arrow-down-line"></i> Расход</button>
+                <button class="btn-act btn-inc" onclick="openTx('income')"><i class="ri-arrow-up-line"></i> Доход</button>
             </div>
 
-            <div class="flex-between"><h4>Счета</h4> <span class="text-xs" onclick="nav('wallet')">ВСЕ</span></div>
+            <div class="flex-between"><h4>Кошельки</h4> <span class="text-xs" onclick="nav('wallet')">ВСЕ</span></div>
+            <!-- ONLY CASH/CARDS HERE -->
             <div class="h-scroll" id="home-accs"></div>
 
             <div class="flex-between" style="margin-top:20px;"><h4>История</h4></div>
             <div id="home-txs" style="padding-bottom: 20px;"></div>
         </div>
 
-        <!-- 2. GOALS -->
-        <div id="scr-goals" class="screen">
-            <h2>Цели 🎯</h2>
+        <!-- 2. INVEST / GOALS -->
+        <div id="scr-invest" class="screen">
+            <h2>Капитал 🏛</h2>
+            <p class="text-sm">Вклады, цели и накопления</p>
             <br>
-            <div id="goals-list"></div>
-            <button class="btn-main" style="background:var(--card); color:var(--text); margin-top:20px;" onclick="openAcc('target')">+ Цель</button>
+            <div id="invest-list"></div>
+            <button class="btn-main" style="background:var(--card); color:var(--text); margin-top:20px;" onclick="openAcc('target')">+ Добавить Цель/Вклад</button>
         </div>
 
         <!-- 3. STATS -->
@@ -137,7 +143,7 @@
             <h2>Аналитика</h2>
             <br>
             <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
-                <button id="sw-exp" class="btn-ghost" style="flex:1; background:var(--card); border-radius:12px;" onclick="setStatMode('expense')">Расходы</button>
+                <button id="sw-exp" class="btn-ghost" style="flex:1; background:var(--card); border-radius:12px; color:var(--text)" onclick="setStatMode('expense')">Расходы</button>
                 <button id="sw-inc" class="btn-ghost" style="flex:1; color:var(--text-sec);" onclick="setStatMode('income')">Доходы</button>
             </div>
             <div class="card">
@@ -158,33 +164,37 @@
                 <div class="flex-between"><h4>Категории</h4> <button class="btn-ghost" onclick="openCat()">+</button></div>
                 <div id="wallet-cats"></div>
             </div>
-            <button class="btn-ghost" style="color:var(--danger); width:100%; margin-top:20px;" onclick="logout()">Выйти (Сменить ID)</button>
+            <button class="btn-ghost" style="color:var(--danger); width:100%; margin-top:30px;" onclick="logout()">Выйти (Смена пользователя)</button>
         </div>
     </div>
 
     <!-- NAV -->
     <nav class="nav-bar">
-        <button class="nav-item active" onclick="nav('home', this)"><i class="ri-home-4-fill"></i></button>
-        <button class="nav-item" onclick="nav('goals', this)"><i class="ri-flag-2-fill"></i></button>
+        <button class="nav-item active" onclick="nav('home', this)"><i class="ri-home-5-fill"></i></button>
+        <button class="nav-item" onclick="nav('invest', this)"><i class="ri-bank-fill"></i></button>
         <button class="nav-item" onclick="nav('stats', this)"><i class="ri-pie-chart-fill"></i></button>
         <button class="nav-item" onclick="nav('wallet', this)"><i class="ri-settings-4-fill"></i></button>
     </nav>
 
     <!-- OVERLAY -->
-    <div class="modal-overlay" id="overlay" onclick="closeAll()"></div>
+    <div class="overlay" id="overlay" onclick="closeAll()"></div>
 
     <!-- TX SHEET -->
     <div id="sheet-tx" class="sheet">
         <div class="flex-between"><h2 id="mtx-title">...</h2> <button class="btn-ghost" onclick="closeAll()">✕</button></div>
         <input type="number" id="mtx-amt" class="input-money" placeholder="0" inputmode="decimal">
+        
         <div class="text-xs">Счет</div>
         <div class="h-scroll" id="mtx-accs"></div>
         <br>
         <div class="text-xs">Категория</div>
         <div class="icon-grid" id="mtx-cats"></div>
         <br>
-        <input type="text" id="mtx-note" class="input-std" placeholder="Комментарий">
-        <button class="btn-main" onclick="saveTx()">Сохранить</button>
+        <div class="flex-between" style="gap:10px">
+            <input type="date" id="mtx-date" class="input-std" style="margin:0">
+            <input type="text" id="mtx-note" class="input-std" placeholder="Комментарий" style="margin:0">
+        </div>
+        <button class="btn-main" onclick="saveTx()" style="margin-top:20px">Сохранить</button>
     </div>
 
     <!-- ACC SHEET -->
@@ -192,14 +202,21 @@
         <div class="flex-between"><h2>Счет</h2> <button class="btn-ghost" style="color:var(--danger)" onclick="delAcc()">Удалить</button></div>
         <br>
         <input type="text" id="macc-name" class="input-std" placeholder="Название">
+        
         <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
             <button class="btn-ghost" style="flex:1" onclick="setAccType('card')" id="btn-t-card">Карта</button>
-            <button class="btn-ghost" style="flex:1" onclick="setAccType('cash')" id="btn-t-cash">Нал</button>
+            <button class="btn-ghost" style="flex:1" onclick="setAccType('deposit')" id="btn-t-deposit">Вклад %</button>
             <button class="btn-ghost" style="flex:1" onclick="setAccType('target')" id="btn-t-target">Цель</button>
         </div>
-        <div id="macc-goal-wrap" class="hidden">
-            <input type="number" id="macc-goal" class="input-std" placeholder="Сумма цели">
+
+        <div id="macc-extra" class="hidden">
+            <div class="flex-between" style="gap:10px">
+                <input type="number" id="macc-goal" class="input-std" placeholder="Цель (сумма)">
+                <input type="number" id="macc-pct" class="input-std" placeholder="% Годовых">
+            </div>
+            <p class="text-xs" style="color:var(--success); margin-bottom:10px" id="macc-calc"></p>
         </div>
+        
         <input type="number" id="macc-bal" class="input-std" placeholder="Текущий баланс">
         <button class="btn-main" onclick="saveAcc()">Сохранить</button>
     </div>
@@ -209,81 +226,76 @@
         <div class="flex-between"><h2>Категория</h2> <button class="btn-ghost" style="color:var(--danger)" onclick="delCat()">Удалить</button></div>
         <br>
         <input type="text" id="mcat-name" class="input-std" placeholder="Название">
+        <div class="card" style="padding: 5px; display: flex; background: var(--bg);">
+            <button class="btn-ghost" style="flex:1" onclick="setCatType('expense')" id="bct-exp">Расход</button>
+            <button class="btn-ghost" style="flex:1" onclick="setCatType('income')" id="bct-inc">Доход</button>
+        </div>
         <div class="icon-grid" id="mcat-icons"></div>
         <br>
         <button class="btn-main" onclick="saveCat()">Сохранить</button>
     </div>
 
     <script>
-        // CONFIG (НЕ ЗАБУДЬ ССЫЛКУ!)
+        // === CONFIG ===
+        // !!! ВСТАВЬ СВОЮ ССЫЛКУ !!!
         const API_URL = 'https://script.google.com/macros/s/AKfycby_ES9U2-4VYmPhMLbDtNNv_ESnbUEI9nlw0euEHsxZ6eJqu340_LpF_A1pSxyUvRxG/exec';
         
-        // INIT
+        // === INIT ===
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        let db = { user:{name:''}, accounts:[], categories:[], transactions:[] };
-        let uid = localStorage.getItem('my_uid_fixed');
+        // Auth Logic
+        let uid = localStorage.getItem('inf_uid');
+        let db = JSON.parse(localStorage.getItem('inf_db')) || { user:{name:''}, accounts:[], categories:[], transactions:[] };
 
-        // --- AUTH LOGIC ---
         function checkAuth() {
             if(!uid) {
-                // Если нет ID в памяти, пробуем взять из Телеграма
+                // Try get from Telegram
                 if(tg.initDataUnsafe?.user?.id) {
-                    uid = 'tg_' + tg.initDataUnsafe.user.id;
-                    localStorage.setItem('my_uid_fixed', uid);
-                    loadFromCloud(); // Авто-вход
+                    manualLogin('tg_'+tg.initDataUnsafe.user.id, tg.initDataUnsafe.user.first_name);
                 } else {
-                    // Если нет ни памяти, ни телеграма - показываем экран входа
-                    document.getElementById('auth-screen').classList.remove('hidden');
+                    document.getElementById('auth-screen').classList.add('open');
                 }
             } else {
-                loadFromCloud(); // ID есть, грузимся
+                loadCloud();
             }
         }
 
-        function manualLogin() {
-            const inputId = document.getElementById('auth-id').value.trim();
-            const inputName = document.getElementById('auth-name').value.trim();
-            if(!inputId) return alert('Введите ID!');
+        function manualLogin(idInput, nameInput) {
+            const id = idInput || document.getElementById('auth-id').value.trim();
+            const name = nameInput || document.getElementById('auth-name').value.trim();
+            if(!id) return alert('Нужен ID');
             
-            uid = 'user_' + inputId.toLowerCase(); // Приводим к нижнему регистру для надежности
-            localStorage.setItem('my_uid_fixed', uid);
+            uid = 'u_' + id.toLowerCase().replace(/[^a-z0-9]/g, '');
+            localStorage.setItem('inf_uid', uid);
             
-            // Если это новый юзер, создаем структуру
-            db.user.name = inputName || 'User';
-            if(db.accounts.length === 0) db.accounts.push({id:'a1', name:'Кошелек', type:'card', balance:0});
-            if(db.categories.length === 0) initCats();
+            // New user init
+            if(!db.user.name) {
+                db.user.name = name || 'User';
+                db.accounts = [{id:'a1', name:'Кошелек', type:'card', balance:0}];
+                db.categories = [
+                    {id:'c1', name:'Еда', type:'expense', icon:'ri-restaurant-line', color:'#F59E0B'},
+                    {id:'c2', name:'Дом', type:'expense', icon:'ri-home-4-line', color:'#3B82F6'},
+                    {id:'c3', name:'Доход', type:'income', icon:'ri-briefcase-4-line', color:'#10B981'}
+                ];
+                saveDB();
+            }
             
-            saveDB();
-            document.getElementById('auth-screen').classList.add('hidden');
-            loadFromCloud();
+            document.getElementById('auth-screen').classList.remove('open');
+            loadCloud();
         }
 
         function logout() {
-            if(!confirm('Выйти? Данные на этом устройстве сотрутся, но останутся в облаке.')) return;
-            localStorage.removeItem('my_uid_fixed');
-            localStorage.removeItem('my_db_v13');
+            if(!confirm('Выйти? Локальные данные будут удалены.')) return;
+            localStorage.removeItem('inf_uid');
+            localStorage.removeItem('inf_db');
             location.reload();
         }
 
-        function initCats() {
-            db.categories = [
-                {id:'c1', name:'Еда', type:'expense', icon:'ri-restaurant-line', color:'#F59E0B'},
-                {id:'c2', name:'Дом', type:'expense', icon:'ri-home-4-line', color:'#3B82F6'},
-                {id:'c3', name:'Доход', type:'income', icon:'ri-briefcase-4-line', color:'#10B981'}
-            ];
-        }
-
-        // --- CORE ---
-        async function loadFromCloud() {
-            // Сначала пробуем загрузить локальный кэш, чтобы было быстро
-            const local = localStorage.getItem('my_db_v13');
-            if(local) { db = JSON.parse(local); renderAll(); }
-            
-            updateHead();
+        // === CORE ===
+        async function loadCloud() {
             setSync('load');
-            
+            updateUI();
             try {
                 const res = await fetch(`${API_URL}?action=load&user_id=${uid}`);
                 const j = await res.json();
@@ -291,23 +303,21 @@
                     db.accounts = j.data.accounts;
                     db.categories = j.data.categories;
                     db.transactions = j.data.transactions;
-                    if(!db.user.name) db.user.name = 'User'; // Fallback
-                    saveDB(false); // Сохраняем без отправки обратно
+                    saveDB(false); // Save without push
                     setSync('ok');
                 } else {
-                    // Если в облаке пусто, отправляем туда наши начальные данные
-                    autoSync();
+                    autoSync(); // Push initial data
                 }
             } catch(e) { setSync('err'); }
         }
 
         function saveDB(push = true) {
-            localStorage.setItem('my_db_v13', JSON.stringify(db));
+            localStorage.setItem('inf_db', JSON.stringify(db));
             renderAll();
             if(push) {
-                setSync('load');
                 clearTimeout(window.syncTimer);
                 window.syncTimer = setTimeout(autoSync, 1000);
+                setSync('load');
             }
         }
 
@@ -324,27 +334,35 @@
         function setSync(s) {
             const el = document.getElementById('sync-dot');
             const tx = document.getElementById('sync-text');
-            el.className = 'sync-dot ' + s;
-            tx.innerText = s=='ok' ? 'ID: ' + uid.replace('user_','').replace('tg_','') : (s=='load' ? 'Синхронизация...' : 'Ошибка сети');
+            el.className = 'dot ' + s;
+            tx.innerText = s=='ok' ? 'ONLINE' : (s=='load' ? 'SYNC...' : 'OFFLINE');
         }
 
-        // --- RENDER ---
-        function updateHead() { document.getElementById('head-name').innerText = db.user.name || 'Мой Кошелек'; }
+        // === RENDER ===
+        const ICONS = { card: '💳', cash: '💵', deposit: '🏦', target: '🎯' };
         function fmt(n) { return Math.floor(n).toLocaleString() + ' ₽'; }
-        const TYPE_ICONS = { card: '💳', cash: '💵', target: '🎯' };
+
+        function updateUI() {
+            document.getElementById('head-name').innerText = db.user.name;
+            document.getElementById('head-id').innerText = 'ID: ' + uid.replace('u_tg_','');
+            renderAll();
+        }
 
         function renderAll() {
-            const tot = db.accounts.reduce((s,a)=>s+(a.type!='target'?a.balance:0), 0);
-            document.getElementById('total-bal').innerText = fmt(tot);
+            // 1. Balance (Cards + Cash only)
+            const liquid = db.accounts.reduce((s,a)=>s+(a.type=='card'||a.type=='cash'?a.balance:0), 0);
+            document.getElementById('total-bal').innerText = fmt(liquid);
 
-            const activeAccs = db.accounts.filter(a => a.type !== 'target');
-            document.getElementById('home-accs').innerHTML = activeAccs.map(a => `
-                <div class="acc-chip" onclick="editAcc('${a.id}')">
-                    <div style="font-weight:700">${TYPE_ICONS[a.type]||'💰'} ${a.name}</div>
+            // 2. Home Accs (Filter out goals)
+            const wallets = db.accounts.filter(a => a.type=='card' || a.type=='cash');
+            document.getElementById('home-accs').innerHTML = wallets.map(a => `
+                <div class="chip" onclick="editAcc('${a.id}')">
+                    <div style="font-weight:700">${ICONS[a.type]} ${a.name}</div>
                     <div style="margin-top:5px; color:var(--primary); font-weight:800">${fmt(a.balance)}</div>
                 </div>`).join('');
 
-            const txs = db.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0, 8);
+            // 3. Transactions
+            const txs = db.transactions.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0, 10);
             document.getElementById('home-txs').innerHTML = txs.map(t => {
                 const c = db.categories.find(x=>x.id==t.catId) || {name:'?', icon:'ri-question-line', color:'#999'};
                 return `<div class="card flex-between" style="padding:15px; margin-bottom:8px;">
@@ -356,23 +374,63 @@
                 </div>`;
             }).join('');
 
-            const targets = db.accounts.filter(a => a.type === 'target');
-            document.getElementById('goals-list').innerHTML = targets.map(a => {
+            // 4. Invest/Goals
+            const invs = db.accounts.filter(a => a.type=='deposit' || a.type=='target');
+            document.getElementById('invest-list').innerHTML = invs.map(a => {
                 const pct = a.goal > 0 ? Math.min(100, (a.balance/a.goal)*100) : 0;
+                let profitInfo = '';
+                if(a.type === 'deposit' && a.percent > 0) {
+                    const yearProfit = a.balance * (a.percent / 100);
+                    profitInfo = `<div class="text-xs" style="color:var(--success); margin-top:8px;">+${fmt(yearProfit)} / год</div>`;
+                }
                 return `<div class="card" onclick="editAcc('${a.id}')">
-                    <div class="flex-between"><b>${a.name}</b> <b>${fmt(a.balance)}</b></div>
-                    <div class="flex-between text-xs" style="margin-top:5px;"><span>Цель: ${fmt(a.goal)}</span> <span>${Math.floor(pct)}%</span></div>
-                    <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>
+                    <div class="flex-between"><b>${ICONS[a.type]} ${a.name}</b> <b>${fmt(a.balance)}</b></div>
+                    ${a.goal>0 ? `<div class="flex-between text-xs" style="margin-top:8px;"><span>Цель: ${fmt(a.goal)}</span> <span>${Math.floor(pct)}%</span></div>
+                    <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>` : ''}
+                    ${profitInfo}
                 </div>`;
             }).join('');
 
-            document.getElementById('wallet-accs').innerHTML = db.accounts.map(a => `<div class="flex-between" style="padding:12px 0; border-bottom:1px solid #eee" onclick="editAcc('${a.id}')"><b>${a.name}</b> <span>${fmt(a.balance)}</span></div>`).join('');
-            document.getElementById('wallet-cats').innerHTML = db.categories.map(c => `<div class="flex-between" style="padding:12px 0; border-bottom:1px solid #eee" onclick="editCat('${c.id}')"><div style="display:flex; gap:10px; align-items:center"><i class="${c.icon}" style="color:${c.color}"></i> ${c.name}</div></div>`).join('');
+            // 5. Wallet Settings
+            document.getElementById('wallet-accs').innerHTML = db.accounts.map(a => `<div class="flex-between" style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05)" onclick="editAcc('${a.id}')"><b>${a.name}</b> <span>${fmt(a.balance)}</span></div>`).join('');
+            document.getElementById('wallet-cats').innerHTML = db.categories.map(c => `<div class="flex-between" style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05)" onclick="editCat('${c.id}')"><div style="display:flex; gap:10px; align-items:center"><i class="${c.icon}" style="color:${c.color}"></i> ${c.name}</div></div>`).join('');
             
             renderStats();
         }
 
-        // --- ACTIONS ---
+        // === STATS ===
+        let statType = 'expense';
+        function setStatMode(t) { 
+            statType=t; 
+            document.getElementById('sw-exp').style.color = t=='expense'?'var(--text)':'var(--text-sec)';
+            document.getElementById('sw-exp').style.background = t=='expense'?'var(--card)':'transparent';
+            document.getElementById('sw-inc').style.color = t=='income'?'var(--text)':'var(--text-sec)';
+            document.getElementById('sw-inc').style.background = t=='income'?'var(--card)':'transparent';
+            renderStats(); 
+        }
+        function renderStats() {
+            const ctx = document.getElementById('chart-pie');
+            const txs = db.transactions.filter(t => t.type === statType);
+            const cats = {}; txs.forEach(t => cats[t.catId] = (cats[t.catId]||0) + t.amount);
+            
+            if(window.pChart) window.pChart.destroy();
+            window.pChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.name),
+                    datasets: [{ data: Object.values(cats), backgroundColor: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.color), borderWidth:0 }]
+                }, options: { maintainAspectRatio:false, plugins:{legend:{display:false}} }
+            });
+            document.getElementById('stats-list').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([id,v]) => {
+                const c = db.categories.find(x=>x.id==id)||{name:'?',color:'#999'};
+                return `<div class="flex-between" style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; gap:10px; align-items:center;"><div style="width:10px; height:10px; border-radius:50%; background:${c.color}"></div> ${c.name}</div>
+                    <b>${fmt(v)}</b>
+                </div>`;
+            }).join('');
+        }
+
+        // === MODALS & LOGIC ===
         let cur = { type:'expense', acc:'', cat:'' };
         
         function openTx(type) {
@@ -380,13 +438,18 @@
             document.getElementById('mtx-title').innerText = type=='expense'?'Расход':'Доход';
             document.getElementById('mtx-amt').value = '';
             document.getElementById('mtx-note').value = '';
+            document.getElementById('mtx-date').valueAsDate = new Date();
             
-            document.getElementById('mtx-accs').innerHTML = db.accounts.map(a => `
-                <div class="acc-chip" onclick="cur.acc='${a.id}'; hi(this,'acc-chip')">
+            // Accs (Only Cards/Cash for spending usually, but allow all except target)
+            const availAccs = db.accounts.filter(a => a.type !== 'target'); 
+            document.getElementById('mtx-accs').innerHTML = availAccs.map(a => `
+                <div class="chip" onclick="cur.acc='${a.id}'; hi(this,'chip')">
                     <b>${a.name}</b><br><small>${fmt(a.balance)}</small>
                 </div>`).join('');
             
-            document.getElementById('mtx-cats').innerHTML = db.categories.filter(c=>c.type==type).map(c => `
+            // Cats (Filtered!)
+            const availCats = db.categories.filter(c => c.type === type);
+            document.getElementById('mtx-cats').innerHTML = availCats.map(c => `
                 <div class="icon-box" style="color:${c.color}" onclick="cur.cat='${c.id}'; hi(this,'icon-box')"><i class="${c.icon}"></i></div>`).join('');
             
             open('sheet-tx');
@@ -394,54 +457,75 @@
 
         function saveTx() {
             const amt = parseFloat(document.getElementById('mtx-amt').value);
-            if(!amt || !cur.acc || !cur.cat) return alert('Заполните всё');
-            const tx = { id: 'tx_'+Date.now(), date: new Date().toISOString(), amount: amt, type: cur.type, accountId: cur.acc, catId: cur.cat, note: document.getElementById('mtx-note').value };
+            if(!amt || !cur.acc || !cur.cat) return alert('Заполните все поля');
+            const tx = {
+                id: 'tx_'+Date.now(), date: document.getElementById('mtx-date').value,
+                amount: amt, type: cur.type, accountId: cur.acc, catId: cur.cat,
+                note: document.getElementById('mtx-note').value
+            };
             db.transactions.push(tx);
             const acc = db.accounts.find(a => a.id == cur.acc);
             if(acc) cur.type=='income' ? acc.balance += amt : acc.balance -= amt;
             saveDB(); closeAll();
         }
 
-        // --- STATS ---
-        let statType = 'expense';
-        function setStatMode(t) { 
-            statType=t; 
-            document.getElementById('sw-exp').style.background = t=='expense'?'var(--card)':'transparent';
-            document.getElementById('sw-exp').style.color = t=='expense'?'var(--text)':'var(--text-sec)';
-            document.getElementById('sw-inc').style.background = t=='income'?'var(--card)':'transparent';
-            document.getElementById('sw-inc').style.color = t=='income'?'var(--text)':'var(--text-sec)';
-            renderStats(); 
-        }
-        function renderStats() {
-            const ctx = document.getElementById('chart-pie');
-            const txs = db.transactions.filter(t => t.type === statType);
-            const cats = {}; txs.forEach(t => cats[t.catId] = (cats[t.catId]||0) + t.amount);
-            if(window.pChart) window.pChart.destroy();
-            window.pChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.name), datasets: [{ data: Object.values(cats), backgroundColor: Object.keys(cats).map(id => db.categories.find(c=>c.id==id)?.color), borderWidth:0 }] }, options: { maintainAspectRatio:false, plugins:{legend:{display:false}} } });
-            document.getElementById('stats-list').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([id,v]) => { const c = db.categories.find(x=>x.id==id)||{name:'?'}; return `<div class="flex-between" style="padding:10px; border-bottom:1px solid #eee;"><div>${c.name}</div><b>${fmt(v)}</b></div>`; }).join('');
-        }
-
-        // --- EDITING ---
-        let editId = null; let tempType = 'card'; let catType = 'expense';
+        // Edit Account
+        let editId = null; let tempType = 'card';
         function openAcc(def) { editId=null; tempType=def||'card'; setupAccModal(); open('sheet-acc'); }
         function editAcc(id) { editId=id; const a=db.accounts.find(x=>x.id==id); tempType=a.type; setupAccModal(a); open('sheet-acc'); }
-        function setupAccModal(a) { document.getElementById('macc-name').value=a?a.name:''; document.getElementById('macc-bal').value=a?a.balance:''; document.getElementById('macc-goal').value=a?a.goal:''; setAccType(a?a.type:tempType); }
-        function setAccType(t) { tempType=t; ['card','cash','target'].forEach(x=>document.getElementById('btn-t-'+x).style.color=t==x?'var(--primary)':'var(--text-sec)'); document.getElementById('macc-goal-wrap').classList.toggle('hidden', t!='target'); }
-        function saveAcc() { const name=document.getElementById('macc-name').value; if(!name)return; const data={id:editId||'a_'+Date.now(), name, type:tempType, balance:parseFloat(document.getElementById('macc-bal').value)||0, goal:parseFloat(document.getElementById('macc-goal').value)||0}; if(editId){const i=db.accounts.findIndex(x=>x.id==editId); db.accounts[i]=data;}else db.accounts.push(data); saveDB(); closeAll(); }
-        function delAcc() { if(editId && confirm('Удалить?')) { db.accounts=db.accounts.filter(x=>x.id!=editId); saveDB(); closeAll(); } }
         
+        function setupAccModal(a) {
+            document.getElementById('macc-name').value = a ? a.name : '';
+            document.getElementById('macc-bal').value = a ? a.balance : '';
+            document.getElementById('macc-goal').value = a ? a.goal : '';
+            document.getElementById('macc-pct').value = a ? a.percent : '';
+            setAccType(a ? a.type : tempType);
+        }
+        function setAccType(t) {
+            tempType=t; 
+            ['card','deposit','target'].forEach(x=>document.getElementById('btn-t-'+x).style.color=t==x?'var(--primary)':'var(--text-sec)');
+            document.getElementById('macc-goal-wrap').classList.toggle('hidden', t=='card');
+        }
+        function saveAcc() {
+            const name = document.getElementById('macc-name').value;
+            if(!name) return;
+            const data = {
+                id: editId || 'a_'+Date.now(), name, type: tempType,
+                balance: parseFloat(document.getElementById('macc-bal').value)||0,
+                goal: parseFloat(document.getElementById('macc-goal').value)||0,
+                percent: parseFloat(document.getElementById('macc-pct').value)||0
+            };
+            if(editId) { const i=db.accounts.findIndex(x=>x.id==editId); db.accounts[i]=data; }
+            else db.accounts.push(data);
+            saveDB(); closeAll();
+        }
+        function delAcc() { if(editId && confirm('Удалить?')) { db.accounts=db.accounts.filter(x=>x.id!=editId); saveDB(); closeAll(); } }
+
+        // Edit Cat
+        let catType='expense';
         function openCat() { editId=null; setupCatModal(); open('sheet-cat'); }
         function editCat(id) { editId=id; setupCatModal(db.categories.find(x=>x.id==id)); open('sheet-cat'); }
-        function setupCatModal(c) { document.getElementById('mcat-name').value=c?c.name:''; catType=c?c.type:'expense'; const icons=['ri-star-line','ri-home-4-line','ri-car-line','ri-shopping-cart-2-line','ri-briefcase-4-line','ri-heart-3-line','ri-plane-line','ri-book-open-line','ri-t-shirt-line','ri-cup-line']; document.getElementById('mcat-icons').innerHTML=icons.map(i=>`<div class="icon-box" onclick="hi(this,'icon-box'); cur.catIcon='${i}'"><i class="${i}"></i></div>`).join(''); }
-        function saveCat() { const name=document.getElementById('mcat-name').value; if(!name)return; const data={id:editId||'c_'+Date.now(), name, type:catType, icon:cur.catIcon||'ri-star-line', color:'#'+Math.floor(Math.random()*16777215).toString(16)}; if(editId){const i=db.categories.findIndex(x=>x.id==editId); db.categories[i]=data;}else db.categories.push(data); saveDB(); closeAll(); }
+        function setupCatModal(c) {
+            document.getElementById('mcat-name').value = c ? c.name : '';
+            setCatType(c ? c.type : 'expense');
+            const icons = ['ri-star-line','ri-home-4-line','ri-car-line','ri-shopping-cart-2-line','ri-briefcase-4-line','ri-heart-3-line','ri-plane-line','ri-book-open-line','ri-t-shirt-line','ri-cup-line'];
+            document.getElementById('mcat-icons').innerHTML = icons.map(i => `<div class="icon-box" onclick="hi(this,'icon-box'); cur.catIcon='${i}'"><i class="${i}"></i></div>`).join('');
+        }
+        function setCatType(t) { catType=t; document.getElementById('bct-exp').style.color=t=='expense'?'var(--text)':'var(--text-sec)'; document.getElementById('bct-inc').style.color=t=='income'?'var(--text)':'var(--text-sec)'; }
+        function saveCat() {
+            const name=document.getElementById('mcat-name').value; if(!name)return;
+            const data={id:editId||'c_'+Date.now(), name, type:catType, icon:cur.catIcon||'ri-star-line', color:'#'+Math.floor(Math.random()*16777215).toString(16)};
+            if(editId) { const i=db.categories.findIndex(x=>x.id==editId); db.categories[i]=data; } else db.categories.push(data);
+            saveDB(); closeAll();
+        }
         function delCat() { if(editId && confirm('Удалить?')) { db.categories=db.categories.filter(x=>x.id!=editId); saveDB(); closeAll(); } }
 
+        // Utils
         function open(id) { document.getElementById('overlay').classList.add('open'); document.getElementById(id).classList.add('open'); }
         function closeAll() { document.getElementById('overlay').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
-        function nav(s,b) { document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active')); document.getElementById('scr-'+s).classList.add('active'); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); if(b) b.classList.add('active'); if(s=='stats') setStatMode('expense'); }
         function hi(el, cls) { document.querySelectorAll('.'+cls).forEach(x=>x.classList.remove('selected')); el.classList.add('selected'); }
-        function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')=='dark'?'light':'dark'); }
-
+        function nav(s,b) { document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active')); document.getElementById('scr-'+s).classList.add('active'); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); if(b) b.classList.add('active'); if(s=='stats') setStatMode('expense'); }
+        
         checkAuth();
     </script>
 </body>
